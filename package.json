@@ -1,0 +1,43 @@
+{
+  "name": "bellos",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@stripe/stripe-js": "^8.6.0",
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.86.2",
+    "clsx": "^2.1.1",
+    "lil-gui": "^0.21.0",
+    "next": "^16.0.7",
+    "papaparse": "^5.5.3",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-dropzone": "^14.3.8",
+    "react-icons": "^5.5.0",
+    "react-sortablejs": "^6.1.4",
+    "resend": "^6.6.0",
+    "sortablejs": "^1.15.6",
+    "stripe": "^20.1.0",
+    "three": "^0.182.0",
+    "use-debounce": "^10.1.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/papaparse": "^5.5.2",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/three": "^0.182.0",
+    "babel-plugin-react-compiler": "1.0.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.0.7",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
