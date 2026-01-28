@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { supabaseServerAuth } from "@/lib/supabase/server-auth";
 import LogoutButton from "@/components/account/LogoutButton";
 
-export const runtime = "nodejs";
+ 
 
 export default async function AdminLayout({
   children,

@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin, requireAdmin } from "@/lib/supabase/admin";
 
-export const runtime = "nodejs";
+ 
 
 export async function GET() {
   const auth = await requireAdmin();

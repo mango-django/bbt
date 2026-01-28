@@ -2,7 +2,7 @@ import ProductFormClient from "@/app/admin/products/components/ProductFormClient
 import { requireAdmin, supabaseAdmin } from "@/lib/supabase/admin";
 import { randomUUID } from "crypto";
 
-export const runtime = "nodejs";
+ 
 
 export default async function CreateProductPage() {
   const auth = await requireAdmin();

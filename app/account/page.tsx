@@ -4,7 +4,7 @@ import CopyTrackingButton from "@/components/account/CopyTrackingButton";
 import { redirect } from "next/navigation";
 import { supabaseServerAuth } from "@/lib/supabase/server-auth";
 
-export const runtime = "nodejs";
+ 
 
 export default async function AccountPage() {
   const supabase = await supabaseServerAuth();

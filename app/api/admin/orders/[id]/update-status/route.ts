@@ -1,12 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, supabaseAdmin } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
 export async function POST(
-  req: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params;
+
   const auth = await requireAdmin();
   if (!auth.ok) {
     return NextResponse.json(
@@ -15,7 +17,6 @@ export async function POST(
     );
   }
 
-  const { id } = params;
   if (!id) {
     return NextResponse.json(
       { error: "Missing order ID" },
@@ -23,7 +24,7 @@ export async function POST(
     );
   }
 
-  const body = await req.json();
+  const body = await request.json();
   const { status, tracking_number } = body;
 
   if (!status) {

@@ -1,14 +1,18 @@
-import { NextResponse } from "next/server";
+
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
-  req: Request,
-  { params }: { params: { room: string } }
+  request: NextRequest,
+  context: { params: Promise<{ room: string }> }
 ) {
-  const roomSlug = params.room;
+  const { room: roomSlug } = await context.params;
 
   if (!roomSlug) {
-    return NextResponse.json({ error: "Missing room" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Missing room parameter" },
+      { status: 400 }
+    );
   }
 
   const supabase = supabaseAdmin();

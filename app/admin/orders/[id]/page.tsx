@@ -1,7 +1,7 @@
 import { supabaseAdmin, requireAdmin } from "@/lib/supabase/admin";
 import OrderStatusUpdater from "@/components/admin/OrderStatusUpdater";
 
-export const runtime = "nodejs";
+ 
 
 export default async function AdminOrderDetailPage({
   params,

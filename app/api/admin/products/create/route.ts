@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin, requireAdmin } from "@/lib/supabase/admin";
 import { slugify } from "@/lib/slugify";
 

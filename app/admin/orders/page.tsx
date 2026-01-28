@@ -1,7 +1,7 @@
 import { supabaseAdmin, requireAdmin } from "@/lib/supabase/admin";
 import Link from "next/link";
 
-export const runtime = "nodejs";
+ 
 
 export default async function AdminOrdersPage() {
   const auth = await requireAdmin();
