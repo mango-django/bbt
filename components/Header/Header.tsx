@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { FiMenu, FiX, FiSearch, FiShoppingCart } from "react-icons/fi";
+import { FiMenu, FiX, FiShoppingCart } from "react-icons/fi";
 import { useCart } from "@/app/context/CartContext";
 import AuthModal from "@/components/auth/AuthModal";
 import { supabaseBrowser } from "@/lib/supabase/client";
@@ -17,18 +17,20 @@ export default function Header() {
   const supabase = useMemo(() => supabaseBrowser(), []);
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [tab, setTab] = useState<"menu" | "categories">("menu");
-  const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
 
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [categories, setCategories] = useState<NavCategory[]>([]);
-  const [categoriesError, setCategoriesError] = useState<string | null>(null);
 
-  const dropdownRef = useRef<HTMLDivElement | null>(null);
   const { cart } = useCart();
   const cartCount = cart.reduce((sum, item) => sum + (item.quantity ?? 1), 0);
+
+  /* -------------------------------------------------
+     LOCK BODY SCROLL WHEN MOBILE MENU OPEN
+  ------------------------------------------------- */
+  useEffect(() => {
+    document.body.style.overflow = mobileMenuOpen ? "hidden" : "";
+  }, [mobileMenuOpen]);
 
   /* -------------------------------------------------
      AUTH BOOTSTRAP
@@ -38,7 +40,6 @@ export default function Header() {
 
     async function initAuth() {
       const { data } = await supabase.auth.getSession();
-
       if (!mounted) return;
 
       const user = data.session?.user ?? null;
@@ -55,7 +56,6 @@ export default function Header() {
       } else {
         setIsAdmin(false);
       }
-
     }
 
     initAuth();
@@ -63,7 +63,6 @@ export default function Header() {
     const { data: listener } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         const user = session?.user ?? null;
-
         setUserEmail(user?.email ?? null);
 
         if (user) {
@@ -84,44 +83,18 @@ export default function Header() {
       mounted = false;
       listener.subscription.unsubscribe();
     };
-  }, []);
-
-  /* -------------------------------------------------
-     CATEGORY LOAD
-  ------------------------------------------------- */
-  useEffect(() => {
-    async function loadCategories() {
-      try {
-        const res = await fetch("/api/public/categories", { cache: "no-store" });
-        const json = await res.json();
-
-        if (!res.ok || !json.success) {
-          throw new Error(json?.error || "Failed to load categories");
-        }
-
-        setCategories(json.categories ?? []);
-      } catch (err: any) {
-        setCategories([]);
-        setCategoriesError(err.message);
-      }
-    }
-
-    loadCategories();
-  }, []);
-
-  function buildCategoryHref(cat: NavCategory) {
-    return `/category/${cat.slug}`;
-  }
+  }, [supabase]);
 
   return (
     <>
-      {/* TOP HEADER */}
+      {/* ================= TOP HEADER ================= */}
       <div className="border-b border-black bg-black text-white">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <Link href="/" className="font-semibold text-2xl tracking-wide">
             BELLOS
           </Link>
 
+          {/* Search (desktop only) */}
           <div className="hidden md:flex flex-1 mx-4">
             <input
               placeholder="Search for tiles..."
@@ -129,7 +102,7 @@ export default function Header() {
             />
           </div>
 
-          {/* AUTH */}
+          {/* Right actions */}
           <div className="flex items-center gap-4">
             {userEmail ? (
               <Link href="/account" className="flex items-center gap-2">
@@ -155,68 +128,118 @@ export default function Header() {
                 </span>
               )}
             </Link>
+
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="md:hidden"
+              aria-label="Open menu"
+            >
+              <FiMenu size={24} />
+            </button>
           </div>
         </div>
       </div>
 
-     {/* DESKTOP NAV */}
-<nav className="hidden md:block border-b bg-white">
-  <div className="max-w-7xl mx-auto px-4 flex items-center gap-8 py-3">
-    <Link
-      href="/"
-      className="text-neutral-600 font-light hover:text-neutral-800"
-    >
-      Home
-    </Link>
+      {/* ================= DESKTOP NAV ================= */}
+      <nav className="hidden md:block border-b bg-white">
+        <div className="max-w-7xl mx-auto px-4 flex items-center gap-8 py-3">
+          <Link href="/" className="text-neutral-600 font-light hover:text-neutral-800">
+            Home
+          </Link>
 
-    {/* Heavy page – disable prefetch */}
-    <Link
-      href="/visualiser"
-      prefetch={false}
-      className="text-neutral-600 font-light hover:text-neutral-800"
-    >
-      Tile Visualiser
-    </Link>
+          <Link
+            href="/visualiser"
+            prefetch={false}
+            className="text-neutral-600 font-light hover:text-neutral-800"
+          >
+            Tile Visualiser
+          </Link>
 
-    <Link
-      href="/installation-products"
-      className="text-neutral-600 font-light hover:text-neutral-800"
-    >
-      Installation Products
-    </Link>
+          <Link href="/installation-products" className="text-neutral-600 font-light hover:text-neutral-800">
+            Installation Products
+          </Link>
 
-    <Link
-      href="/faqs"
-      className="text-neutral-600 font-light hover:text-neutral-800"
-    >
-      FAQs
-    </Link>
+          <Link href="/faqs" className="text-neutral-600 font-light hover:text-neutral-800">
+            FAQs
+          </Link>
 
-    <Link
-      href="/about"
-      className="text-neutral-600 font-light hover:text-neutral-800"
-    >
-      About
-    </Link>
+          <Link href="/about" className="text-neutral-600 font-light hover:text-neutral-800">
+            About
+          </Link>
 
-    <Link
-      href="/contact-us"
-      className="text-neutral-600 font-light hover:text-neutral-800"
-    >
-      Contact
-    </Link>
+          <Link href="/contact-us" className="text-neutral-600 font-light hover:text-neutral-800">
+            Contact
+          </Link>
 
-    {isAdmin && (
-      <Link
-        href="/admin"
-        className="text-neutral-600 font-light hover:text-neutral-800"
+          {isAdmin && (
+            <Link href="/admin" className="text-neutral-600 font-light hover:text-neutral-800">
+              Admin
+            </Link>
+          )}
+        </div>
+      </nav>
+
+      {/* ================= MOBILE MENU ================= */}
+      {/* Backdrop */}
+      <div
+        className={`fixed inset-0 z-40 bg-black/40 transition-opacity duration-300 md:hidden ${
+          mobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={() => setMobileMenuOpen(false)}
+      />
+
+      {/* Slide-out panel */}
+      <div
+        className={`fixed top-0 right-0 z-50 h-full w-[85%] max-w-sm bg-white shadow-xl transform transition-transform duration-300 ease-out md:hidden ${
+          mobileMenuOpen ? "translate-x-0" : "translate-x-full"
+        }`}
       >
-        Admin
-      </Link>
-    )}
-  </div>
-</nav>
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b">
+          <span className="font-semibold text-lg">Menu</span>
+          <button onClick={() => setMobileMenuOpen(false)}>
+            <FiX size={24} />
+          </button>
+        </div>
 
+        {/* Links */}
+        <nav className="flex flex-col px-5 py-6 space-y-5 text-sm">
+          <Link href="/" onClick={() => setMobileMenuOpen(false)}>Home</Link>
+          <Link href="/visualiser" prefetch={false} onClick={() => setMobileMenuOpen(false)}>
+            Tile Visualiser
+          </Link>
+          <Link href="/installation-products" onClick={() => setMobileMenuOpen(false)}>
+            Installation Products
+          </Link>
+          <Link href="/faqs" onClick={() => setMobileMenuOpen(false)}>FAQs</Link>
+          <Link href="/about" onClick={() => setMobileMenuOpen(false)}>About</Link>
+          <Link href="/contact-us" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
+
+          {isAdmin && (
+            <Link href="/admin" onClick={() => setMobileMenuOpen(false)}>
+              Admin
+            </Link>
+          )}
+        </nav>
+
+        <div className="border-t px-5 py-4">
+          {userEmail ? (
+            <Link href="/account" onClick={() => setMobileMenuOpen(false)}>
+              Account
+            </Link>
+          ) : (
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setAuthOpen(true);
+              }}
+            >
+              Login / Sign Up
+            </button>
+          )}
+        </div>
+      </div>
 
       <AuthModal
         isOpen={authOpen}
