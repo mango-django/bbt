@@ -34,7 +34,8 @@ export default function Header() {
   const [searchValue, setSearchValue] = useState("");
   const [searchResults, setSearchResults] = useState<ProductSearchItem[]>([]);
   const [searchOpen, setSearchOpen] = useState(false);
-  const searchRef = useRef<HTMLDivElement>(null);
+  const desktopSearchRef = useRef<HTMLDivElement>(null);
+  const mobileSearchRef = useRef<HTMLDivElement>(null);
 
   const { cart } = useCart();
   const cartCount = cart.reduce((sum, item) => sum + (item.quantity ?? 1), 0);
@@ -81,7 +82,10 @@ export default function Header() {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const clickedDesktop = desktopSearchRef.current?.contains(target);
+      const clickedMobile = mobileSearchRef.current?.contains(target);
+      if (!clickedDesktop && !clickedMobile) {
         setSearchOpen(false);
         setMobileSearchOpen(false);
       }
@@ -153,7 +157,7 @@ export default function Header() {
           </Link>
 
           {/* Search (desktop only) */}
-          <div className="hidden md:flex flex-1 mx-4 relative" ref={searchRef}>
+          <div className="hidden md:flex flex-1 mx-4 relative" ref={desktopSearchRef}>
             <input
               placeholder="Search for tiles..."
               className="w-full border border-white/30 bg-white/10 rounded-md px-4 py-2 text-sm"
@@ -176,13 +180,14 @@ export default function Header() {
             />
 
             {searchOpen && searchResults.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-white text-black rounded-md shadow-lg border border-black/10 z-50">
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white text-black rounded-md shadow-lg border border-black/10 z-50 overflow-hidden">
+
                 {searchResults.map((product) => (
-                  <button
+                  <Link
                     key={product.id}
-                    className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 border-b last:border-none"
+                    href={`/products/${product.slug ?? product.id}`}
+                    className="block w-full px-4 py-3 text-sm text-left no-underline bg-white hover:bg-neutral-100 border-b border-black/10 last:border-b-0"
                     onClick={() => {
-                      router.push(`/products/${product.slug ?? product.id}`);
                       setSearchOpen(false);
                     }}
                   >
@@ -194,7 +199,7 @@ export default function Header() {
                         {product.dimension_string}
                       </div>
                     )}
-                  </button>
+                  </Link>
                 ))}
               </div>
             )}
@@ -252,7 +257,7 @@ export default function Header() {
       <div className={`md:hidden ${mobileSearchOpen ? "block" : "hidden"}`}>
         <div className="border-b border-black bg-black text-white">
           <div className="max-w-7xl mx-auto px-4 py-3">
-            <div className="relative" ref={searchRef}>
+            <div className="relative" ref={mobileSearchRef}>
               <input
                 placeholder="Search for tiles..."
                 className="w-full border border-white/30 bg-white/10 rounded-md px-4 py-2 text-sm"
@@ -276,13 +281,13 @@ export default function Header() {
               />
 
               {searchOpen && searchResults.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white text-black rounded-md shadow-lg border border-black/10 z-50">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white text-black rounded-md shadow-lg border border-black/10 z-50 divide-y divide-black/10 overflow-hidden">
                   {searchResults.map((product) => (
-                    <button
+                    <Link
                       key={product.id}
-                      className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 border-b last:border-none"
+                      href={`/products/${product.slug ?? product.id}`}
+                      className="block w-full px-4 py-3 text-sm text-left no-underline bg-white hover:bg-neutral-100 border-b border-black/10 last:border-b-0"
                       onClick={() => {
-                        router.push(`/products/${product.slug ?? product.id}`);
                         setSearchOpen(false);
                         setMobileSearchOpen(false);
                       }}
@@ -295,7 +300,7 @@ export default function Header() {
                           {product.dimension_string}
                         </div>
                       )}
-                    </button>
+                    </Link>
                   ))}
                 </div>
               )}

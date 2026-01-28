@@ -35,7 +35,7 @@ export default async function AccountPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-8">
+    <div className="max-w-6xl mx-auto p-6 space-y-8 text-neutral-700">
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">My Account</h1>
@@ -48,7 +48,7 @@ export default async function AccountPage() {
           {isAdmin && (
             <Link
               href="/admin"
-              className="underline font-semibold text-blue-600"
+              className="underline font-semibold text-neutral-700"
             >
               Admin Dashboard
             </Link>
@@ -60,8 +60,8 @@ export default async function AccountPage() {
       </div>
 
       {/* ORDERS */}
-      <div className="bg-white shadow rounded overflow-x-auto">
-        <table className="w-full text-sm">
+      <div className="bg-white shadow rounded overflow-x-auto text-neutral-700">
+        <table className="w-full text-sm text-neutral-700">
           <thead className="bg-gray-100">
             <tr>
               <th className="p-3 text-left">Order</th>
@@ -78,7 +78,7 @@ export default async function AccountPage() {
               <tr>
                 <td
                   colSpan={5}
-                  className="p-6 text-center text-gray-500"
+                  className="p-6 text-center text-neutral-700"
                 >
                   You haven’t placed any orders yet.
                 </td>
@@ -101,7 +101,7 @@ export default async function AccountPage() {
                   {order.tracking_number ? (
                     <CopyTrackingButton value={order.tracking_number} />
                   ) : (
-                    <span className="text-xs text-gray-400">—</span>
+                    <span className="text-xs text-neutral-700">—</span>
                   )}
                 </td>
 
