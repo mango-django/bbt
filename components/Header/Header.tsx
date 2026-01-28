@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FiMenu, FiX, FiShoppingCart } from "react-icons/fi";
+import { FiMenu, FiSearch, FiX, FiShoppingCart } from "react-icons/fi";
 import { useCart } from "@/app/context/CartContext";
 import AuthModal from "@/components/auth/AuthModal";
 import { supabaseBrowser } from "@/lib/supabase/client";
@@ -27,6 +27,7 @@ export default function Header() {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -82,6 +83,7 @@ export default function Header() {
     function handleClickOutside(event: MouseEvent) {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setSearchOpen(false);
+        setMobileSearchOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -225,6 +227,15 @@ export default function Header() {
               )}
             </Link>
 
+            {/* Mobile search button */}
+            <button
+              onClick={() => setMobileSearchOpen((open) => !open)}
+              className="md:hidden"
+              aria-label="Toggle search"
+            >
+              <FiSearch size={22} />
+            </button>
+
             {/* Mobile menu button */}
             <button
               onClick={() => setMobileMenuOpen(true)}
@@ -233,6 +244,62 @@ export default function Header() {
             >
               <FiMenu size={24} />
             </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ================= MOBILE SEARCH ================= */}
+      <div className={`md:hidden ${mobileSearchOpen ? "block" : "hidden"}`}>
+        <div className="border-b border-black bg-black text-white">
+          <div className="max-w-7xl mx-auto px-4 py-3">
+            <div className="relative" ref={searchRef}>
+              <input
+                placeholder="Search for tiles..."
+                className="w-full border border-white/30 bg-white/10 rounded-md px-4 py-2 text-sm"
+                value={searchValue}
+                onChange={(e) => {
+                  setSearchValue(e.target.value);
+                  setSearchOpen(true);
+                }}
+                onFocus={() => setSearchOpen(true)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    const first = searchResults[0];
+                    if (first) {
+                      router.push(`/products/${first.slug ?? first.id}`);
+                      setSearchOpen(false);
+                      setMobileSearchOpen(false);
+                    }
+                  }
+                }}
+              />
+
+              {searchOpen && searchResults.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white text-black rounded-md shadow-lg border border-black/10 z-50">
+                  {searchResults.map((product) => (
+                    <button
+                      key={product.id}
+                      className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 border-b last:border-none"
+                      onClick={() => {
+                        router.push(`/products/${product.slug ?? product.id}`);
+                        setSearchOpen(false);
+                        setMobileSearchOpen(false);
+                      }}
+                    >
+                      <div className="font-medium">
+                        {product.title ?? "Untitled tile"}
+                      </div>
+                      {product.dimension_string && (
+                        <div className="text-xs text-neutral-600">
+                          {product.dimension_string}
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
