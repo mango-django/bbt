@@ -217,7 +217,7 @@ export default function Header() {
             ) : (
               <button
                 onClick={() => setAuthOpen(true)}
-                className="text-sm font-medium"
+                className="hidden md:inline text-sm font-medium"
               >
                 Login / Sign Up
               </button>
