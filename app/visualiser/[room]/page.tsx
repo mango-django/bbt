@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { initVisualiser, destroyVisualiser } from "../visualiser.engine";
-
-
+import MobileVisualiserFallback from "../MobileVisualiserFallback";
 
 type Category =
   | "Floor"
@@ -13,6 +12,20 @@ type Category =
   | "Walls";
 
 export default function VisualiserPage() {
+  /* -------------------------------------------------
+     📱 MOBILE FALLBACK (CRITICAL – MUST BE FIRST)
+  ------------------------------------------------- */
+  const isMobile =
+    typeof window !== "undefined" &&
+    /Android|iPhone|iPod/i.test(navigator.userAgent);
+
+  if (isMobile) {
+    return <MobileVisualiserFallback />;
+  }
+
+  /* -------------------------------------------------
+     STATE
+  ------------------------------------------------- */
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [stageText, setStageText] = useState("Loading textures…");
@@ -22,23 +35,23 @@ export default function VisualiserPage() {
     "textures" | "lighting" | "finalising" | "ready"
   >("textures");
 
-  // 📱 Mobile drawer
+  // 📱 Drawer (tablet only, phones blocked above)
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  /* -----------------------------
-     Init visualiser
-  ----------------------------- */
+  /* -------------------------------------------------
+     INIT VISUALISER (DESKTOP + iPAD ONLY)
+  ------------------------------------------------- */
   useEffect(() => {
-  initVisualiser();
+    initVisualiser();
 
-  return () => {
-    destroyVisualiser();
-  };
-}, []);
+    return () => {
+      destroyVisualiser();
+    };
+  }, []);
 
-  /* -----------------------------
-     Progress listener
-  ----------------------------- */
+  /* -------------------------------------------------
+     PROGRESS LISTENER
+  ------------------------------------------------- */
   useEffect(() => {
     function handleProgress(e: Event) {
       const detail = (e as CustomEvent<{ progress: number }>).detail;
@@ -66,18 +79,20 @@ export default function VisualiserPage() {
       }
     }
 
+    const handleLoaded = () => setIsLoading(false);
+
     window.addEventListener("visualiser-progress", handleProgress);
-    window.addEventListener("visualiser-loaded", () => setIsLoading(false));
+    window.addEventListener("visualiser-loaded", handleLoaded);
 
     return () => {
       window.removeEventListener("visualiser-progress", handleProgress);
-      window.removeEventListener("visualiser-loaded", () => {});
+      window.removeEventListener("visualiser-loaded", handleLoaded);
     };
   }, [stage]);
 
-  /* -----------------------------
-     Finalising dots
-  ----------------------------- */
+  /* -------------------------------------------------
+     FINALISING DOTS
+  ------------------------------------------------- */
   useEffect(() => {
     if (stage !== "finalising") return;
 
@@ -88,9 +103,9 @@ export default function VisualiserPage() {
     return () => clearInterval(interval);
   }, [stage]);
 
-  /* -----------------------------
+  /* -------------------------------------------------
      JSX
-  ----------------------------- */
+  ------------------------------------------------- */
   return (
     <div className="fixed inset-0 bg-[#f5f5f5] overflow-hidden">
       {/* ================= LOADER ================= */}
@@ -157,7 +172,7 @@ export default function VisualiserPage() {
         </div>
       </div>
 
-      {/* ================= MOBILE DRAWER BUTTON ================= */}
+      {/* ================= MOBILE DRAWER BUTTON (TABLET) ================= */}
       <button
         onClick={() => setDrawerOpen(true)}
         className="md:hidden fixed bottom-6 right-6 z-30 bg-black text-white px-5 py-3 rounded-full shadow-lg"
