@@ -110,6 +110,7 @@ export default function CartPage() {
                       alt={item.title}
                       fill
                       className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 50vw"
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-xs text-gray-400">

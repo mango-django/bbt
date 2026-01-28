@@ -7,6 +7,8 @@ import { DRACOLoader } from "three/addons/loaders/DRACOLoader.js";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 
 
+
+
 type FloorTextureItem = {
   id: string;
   name: string;
@@ -47,6 +49,11 @@ type Category =
 // 🔒 GLOBAL INIT GUARD (CRITICAL)
 // -----------------------------
 let VISUALISER_INITIALISED = false;
+let animationId: number | null = null;
+let renderer: THREE.WebGLRenderer | null = null;
+let scene: THREE.Scene | null = null;
+
+
 
 export function initVisualiser() {
   if (typeof window === "undefined") return;
@@ -1346,11 +1353,37 @@ window.addEventListener("visualiser-category-change", (event) => {
 window.addEventListener("resize", handleResize);
 
 
-  function animate() {
-    controls.update();
-    renderer.render(scene, camera);
-    requestAnimationFrame(animate);
+let animationId: number;
+
+function animate() {
+  controls.update();
+  renderer!.render(scene!, camera);
+  animationId = requestAnimationFrame(animate);
+}
+
+animate();
+
+}
+
+
+export function destroyVisualiser() {
+  if (!VISUALISER_INITIALISED) return;
+
+  if (animationId !== null) {
+    cancelAnimationFrame(animationId);
+    animationId = null;
   }
 
-  animate();
+  renderer?.dispose();
+  scene?.clear();
+
+  renderer = null;
+  scene = null;
+
+  VISUALISER_INITIALISED = false;
+
+  console.warn("🧹 Visualiser destroyed");
 }
+
+
+

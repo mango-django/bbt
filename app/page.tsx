@@ -121,7 +121,7 @@ export default async function Home() {
                 fill
                 priority
                 className="object-cover"
-                sizes="100vw"
+                sizes="(max-width: 768px) 100vw, 50vw"
               />
             </div>
           </section>
@@ -137,6 +137,7 @@ export default async function Home() {
                 alt="Wall Tiles"
                 fill
                 className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
               />
               <div className="absolute bottom-4 left-4 bg-white/80 px-4 py-2 text-black text-sm sm:text-base">
                 Wall
@@ -155,6 +156,7 @@ export default async function Home() {
                     alt={cat.label}
                     fill
                     className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 50vw"
                   />
                   <div className="absolute bottom-3 left-3 bg-white/80 px-3 py-1 text-xs sm:text-sm text-black">
                     {cat.label}
@@ -172,6 +174,7 @@ export default async function Home() {
                 alt="Bellos Logo"
                 fill
                 className="object-cover"
+                sizes="(max-width: 768px) 100vw, 50vw"
               />
             </div>
 
@@ -239,6 +242,7 @@ export default async function Home() {
               alt="Visualiser"
               fill
               className="object-cover"
+              sizes="(max-width: 768px) 100vw, 50vw"
             />
             <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white text-center px-4">
               <h2 className="text-2xl sm:text-3xl font-bold mb-3">

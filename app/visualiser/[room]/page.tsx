@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { initVisualiser } from "../visualiser.engine";
+import { initVisualiser, destroyVisualiser } from "../visualiser.engine";
+
+
 
 type Category =
   | "Floor"
@@ -27,8 +29,12 @@ export default function VisualiserPage() {
      Init visualiser
   ----------------------------- */
   useEffect(() => {
-    initVisualiser();
-  }, []);
+  initVisualiser();
+
+  return () => {
+    destroyVisualiser();
+  };
+}, []);
 
   /* -----------------------------
      Progress listener
