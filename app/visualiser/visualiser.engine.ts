@@ -43,10 +43,21 @@ type Category =
   | "Stools"
   | "Walls";
 
-
+// -----------------------------
+// 🔒 GLOBAL INIT GUARD (CRITICAL)
+// -----------------------------
+let VISUALISER_INITIALISED = false;
 
 export function initVisualiser() {
   if (typeof window === "undefined") return;
+
+  // 🚨 HARD GUARD: prevent double init (mobile-safe)
+  if (VISUALISER_INITIALISED) {
+    console.warn("⚠️ Visualiser already initialised — skipping");
+    return;
+  }
+  VISUALISER_INITIALISED = true;
+
 
 let actualProgress = 0;
 let displayedProgress = 0;
@@ -603,8 +614,21 @@ let cupboardMesh: THREE.Mesh | null = null;
   const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 50);
   camera.position.set(0.0, 0.85, 3.6);
 
-  const canvas = document.getElementById("kitchen-canvas") as HTMLCanvasElement | null;
-  if (!canvas) return;
+ const canvas = document.getElementById("kitchen-canvas") as HTMLCanvasElement | null;
+
+if (!canvas) {
+  console.error("❌ Visualiser canvas not found");
+  VISUALISER_INITIALISED = false;
+  return;
+}
+
+// Prevent re-binding renderer to same canvas
+if ((canvas as any).__threeBound) {
+  console.warn("⚠️ Canvas already bound to renderer");
+  return;
+}
+(canvas as any).__threeBound = true;
+
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -1313,11 +1337,14 @@ window.addEventListener("visualiser-category-change", (event) => {
   // -----------------------------
   // Resize + render loop
   // -----------------------------
-  window.addEventListener("resize", () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  });
+  const handleResize = () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+};
+
+window.addEventListener("resize", handleResize);
+
 
   function animate() {
     controls.update();
