@@ -3,7 +3,7 @@ import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
 
 /* ---------------------------------------------
-   PRODUCT TYPE
+   TYPES
 --------------------------------------------- */
 type ProductListItem = {
   id: string;
@@ -73,12 +73,12 @@ const quickCategoriesData = [
 ] as const;
 
 /* ---------------------------------------------
-   FETCH LATEST FEATURED PRODUCTS
+   DATA
 --------------------------------------------- */
 async function getFeaturedProducts(): Promise<ProductListItem[]> {
   const supabase = supabaseServer();
 
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from("products")
     .select(
       `
@@ -93,14 +93,9 @@ async function getFeaturedProducts(): Promise<ProductListItem[]> {
         )
       `
     )
-    .eq("status", "active") // only show active products
+    .eq("status", "active")
     .order("created_at", { ascending: false })
     .limit(2);
-
-  if (error) {
-    console.error("Failed to load products", error);
-    return [];
-  }
 
   return data ?? [];
 }
@@ -108,44 +103,42 @@ async function getFeaturedProducts(): Promise<ProductListItem[]> {
 export const revalidate = 0;
 
 /* ---------------------------------------------
-   HOME PAGE
+   HOME
 --------------------------------------------- */
 export default async function Home() {
   const products = await getFeaturedProducts();
 
   return (
     <main>
+      {/* ================= HERO ================= */}
       <div className="bg-black text-white">
         <div className="max-w-7xl mx-auto px-4">
-
-          {/* ================= HERO BANNER ================= */}
-          <section className="mt-6">
-            <div className="w-full h-[720px] relative overflow-hidden">
+          <section className="mt-4">
+            <div className="relative w-full h-[420px] sm:h-[520px] lg:h-[720px] overflow-hidden">
               <Image
                 src="/hero-home-bellos-bathroom.webp"
                 alt="Hero Banner"
                 fill
+                priority
                 className="object-cover"
-                loading="eager"
                 sizes="100vw"
               />
             </div>
           </section>
 
-          {/* ================= QUICK CATEGORY GRID ================= */}
+          {/* ================= QUICK CATEGORIES ================= */}
           <section className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
             <Link
               href={buildCategoryHref("wall", { application: "Wall" })}
-              className="relative h-[400px] overflow-hidden block"
+              className="relative h-[260px] sm:h-[360px] md:h-[400px] overflow-hidden"
             >
               <Image
                 src="/homepage-lounge.webp"
-                alt="Lounge Tile Scene"
+                alt="Wall Tiles"
                 fill
                 className="object-cover"
-                sizes="(max-width: 768px) 100vw, 50vw"
               />
-              <div className="absolute bottom-4 left-4 bg-white/75 px-4 py-2 text-[#1a1a1a]">
+              <div className="absolute bottom-4 left-4 bg-white/80 px-4 py-2 text-black text-sm sm:text-base">
                 Wall
               </div>
             </Link>
@@ -155,16 +148,15 @@ export default async function Home() {
                 <Link
                   key={cat.label}
                   href={buildCategoryHref(cat.slug, cat.filters)}
-                  className="relative h-[190px] overflow-hidden block"
+                  className="relative h-[140px] sm:h-[180px] overflow-hidden"
                 >
                   <Image
                     src={cat.image}
                     alt={cat.label}
                     fill
                     className="object-cover"
-                    sizes="(max-width: 768px) 50vw, 25vw"
                   />
-                  <div className="absolute bottom-3 left-3 bg-white/75 px-3 py-1 text-sm font-light text-[#1a1a1a]">
+                  <div className="absolute bottom-3 left-3 bg-white/80 px-3 py-1 text-xs sm:text-sm text-black">
                     {cat.label}
                   </div>
                 </Link>
@@ -172,30 +164,30 @@ export default async function Home() {
             </div>
           </section>
 
-          {/* ================= INTRO SECTION ================= */}
-          <section className="mt-20 grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
-            <div className="relative w-full h-[380px] overflow-hidden">
+          {/* ================= INTRO ================= */}
+          <section className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div className="relative w-full h-[260px] sm:h-[340px] overflow-hidden">
               <Image
                 src="/bellos-intro-logo.webp"
-                alt="Bellos Bespoke Tiles Logo"
+                alt="Bellos Logo"
                 fill
                 className="object-cover"
-                sizes="(max-width: 768px) 100vw, 50vw"
               />
             </div>
 
-            <div className="bg-[#1c1c1c] p-8 text-white">
-              <h2 className="text-3xl font-bold mb-4">Premium Tiles for Every Space</h2>
-              <p className="leading-relaxed text-white/80">
-                At Bellos, we provide high-quality porcelain, ceramic, mosaic, and 
-                outdoor tiles to elevate your interiors. Explore our collections and 
-                experience our state-of-the-art 3D Visualiser to see your dream space 
-                come to life.
+            <div className="bg-[#1c1c1c] p-6 sm:p-8 text-white">
+              <h2 className="text-2xl sm:text-3xl font-bold mb-4">
+                Premium Tiles for Every Space
+              </h2>
+              <p className="text-sm sm:text-base text-white/80 leading-relaxed">
+                At Bellos, we provide high-quality porcelain, ceramic, mosaic and
+                outdoor tiles. Explore our collections or try our 3D Visualiser
+                to see your space come to life.
               </p>
 
               <Link
                 href="/about"
-                className="inline-block mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg"
+                className="inline-block mt-6 bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg text-sm sm:text-base"
               >
                 Learn More
               </Link>
@@ -204,100 +196,69 @@ export default async function Home() {
         </div>
       </div>
 
-      <div className="bg-white text-[#1c1c1c]">
+      {/* ================= FEATURED ================= */}
+      <div className="bg-white text-black">
         <div className="max-w-7xl mx-auto px-4">
-
-      {/* ================= FEATURED PRODUCTS ================= */}
-      <section className="mt-24 pt-10">
-        <div className="flex items-center justify-between gap-4">
-          <div className="text-[#313131]">
-            <h2 className="text-2xl font-medium">
+          <section className="mt-20">
+            <h2 className="text-xl sm:text-2xl font-medium mb-6">
               Latest Products
             </h2>
-            <p className="text-[#333333]">View Our Latest Ranges</p>
-          </div>
 
-        </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {products.map((product) => {
+                const img =
+                  product.product_images?.[0]?.url ?? "/hero-bathroom.webp";
+                const price =
+                  formatPrice(product.price_per_m2) ??
+                  formatPrice(product.price_per_box) ??
+                  "Contact for pricing";
 
-        {products.length === 0 ? (
-          <p className="mt-6 text-[#333333]">No products to show yet. Check back soon.</p>
-        ) : (
-          <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">
-            {products.map((product) => {
-              const sortedImages = [...(product.product_images ?? [])].sort(
-                (a, b) => (a?.sort_order ?? 999) - (b?.sort_order ?? 999)
-              );
+                return (
+                  <Link
+                    key={product.id}
+                    href={`/products/${product.slug ?? product.id}`}
+                    className="border p-4 hover:shadow-lg transition"
+                  >
+                    <div className="relative w-full pb-[70%] bg-neutral-100">
+                      <Image src={img} alt="" fill className="object-cover" />
+                    </div>
+                    <div className="mt-4">
+                      <p className="font-semibold">{product.title}</p>
+                      <p className="text-sm text-gray-600">{price}</p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
 
-              // Correct field: url
-              const firstImage = sortedImages[0]?.url || "/hero-bathroom.webp";
+          {/* ================= VISUALISER CTA ================= */}
+          <section className="mt-20 relative h[240px] sm:h-[300px] overflow-hidden">
+            <Image
+              src="/visualiser-banner.webp"
+              alt="Visualiser"
+              fill
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white text-center px-4">
+              <h2 className="text-2xl sm:text-3xl font-bold mb-3">
+                Try Tiles in 3D
+              </h2>
+              <p className="text-sm sm:text-lg mb-5">
+                Visualise tiles in real room settings
+              </p>
+              <Link
+                href="/visualiser"
+                className="bg-white text-black px-6 py-3 rounded-lg font-semibold"
+              >
+                Open Visualiser
+              </Link>
+            </div>
+          </section>
 
-              const isLocal = firstImage.startsWith("/");
-
-              const pricePerM2 = formatPrice(product.price_per_m2);
-              const pricePerBox = formatPrice(product.price_per_box);
-
-              const priceLabel =
-                pricePerM2 ??
-                (pricePerBox ? `${pricePerBox} / box` : "Contact for pricing");
-
-              const slug = product.slug || product.id;
-
-              return (
-                <Link
-                  key={product.id}
-                  href={`/products/${slug}`}
-                  className="group border border-gray-200 rounded-none p-4 shadow-sm transition hover:shadow-lg"
-                >
-                  <div className="relative w-full overflow-hidden bg-neutral-100 pb-[70%]">
-                    <Image
-                      src={firstImage}
-                      alt={product.title ?? "Product image"}
-                      fill
-                      className="object-cover transition duration-500 group-hover:scale-105"
-                      unoptimized={!isLocal}
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                    />
-                  </div>
-
-                  <div className="mt-4">
-                    <p className="text-lg font-semibold text-[#1c1c1c]">
-                      {product.title ?? "Untitled product"}
-                    </p>
-                    <p className="text-sm text-[#333333]">{priceLabel}</p>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      {/* ================= VISUALISER ================= */}
-      <section className="mt-24 relative h-[300px] overflow-hidden">
-        <Image
-          src="/visualiser-banner.webp"
-          alt="Tile Visualiser"
-          fill
-          className="object-cover"
-          unoptimized
-        />
-        <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white">
-          <h2 className="text-3xl font-bold mb-3">Try Tiles in 3D</h2>
-          <p className="mb-5 text-lg">View tiles in realistic room models</p>
-
-          <Link
-            href="/visualiser"
-            className="bg-white text-neutral-900 px-6 py-3 rounded-lg font-semibold"
-          >
-            Open Visualiser
-          </Link>
-        </div>
-      </section>
-      <div className="h-24 bg-white" />
-
+          <div className="h-20" />
         </div>
       </div>
-
     </main>
   );
 }

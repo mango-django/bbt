@@ -43,8 +43,6 @@ export default async function AdminLayout({
           <Link href="/admin/products">Products</Link>
           <Link href="/admin/installation-products">Installation Products</Link>
           <Link href="/admin/orders">Orders</Link>
-          <Link href="/admin/textures">Textures</Link>
-          <Link href="/admin/rooms">Room Models</Link>
         </nav>
 
         <div className="mt-auto pt-6">

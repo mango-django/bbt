@@ -204,7 +204,7 @@ export default function Header() {
         </div>
 
         {/* Links */}
-        <nav className="flex flex-col px-5 py-6 space-y-5 text-sm">
+        <nav className="flex flex-col px-5 py-6 space-y-5 text-sm [&_a]:text-neutral-700 [&_a]:hover:text-neutral-900 [&_button]:text-neutral-700 [&_button]:hover:text-neutral-900">
           <Link href="/" onClick={() => setMobileMenuOpen(false)}>Home</Link>
           <Link href="/visualiser" prefetch={false} onClick={() => setMobileMenuOpen(false)}>
             Tile Visualiser

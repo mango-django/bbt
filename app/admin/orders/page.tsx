@@ -66,7 +66,7 @@ export default async function AdminOrdersPage() {
           <tbody>
             {orders?.length === 0 && (
               <tr>
-                <td colSpan={8} className="p-6 text-center text-gray-500">
+                <td colSpan={8} className="p-6 text-center text-neutral-700">
                   No orders yet.
                 </td>
               </tr>
@@ -91,7 +91,7 @@ export default async function AdminOrdersPage() {
                   <div className="font-medium">
                     {order.customer_name || "—"}
                   </div>
-                  <div className="text-gray-500 text-xs">
+                  <div className="text-neutral-700 text-xs">
                     {order.customer_email}
                   </div>
                 </td>
@@ -126,7 +126,7 @@ export default async function AdminOrdersPage() {
                   £{order.total?.toFixed(2) ?? "0.00"}
                 </td>
 
-                <td className="p-3 text-xs text-gray-500">
+                <td className="p-3 text-xs text-neutral-700">
                   {new Date(order.created_at).toLocaleString()}
                 </td>
               </tr>

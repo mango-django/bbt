@@ -2,60 +2,64 @@ import Link from "next/link";
 
 export default function VisualiserHubPage() {
   return (
-    <div className="max-w-7xl mx-auto px-6 py-14">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-14">
       {/* ===== Header ===== */}
-      <h1 className="text-4xl font-bold mb-4">
+      <h1 className="text-3xl sm:text-4xl font-bold mb-4">
         Interactive Room Visualiser
       </h1>
 
-      <p className="text-gray-600 max-w-3xl mb-12">
-        Welcome to the Bellos Interactive Hub. Explore our immersive 3D rooms,
+      <p className="text-gray-600 max-w-3xl mb-10 sm:mb-12 text-sm sm:text-base">
+        Welcome to the Bellos Interactive Hub. Explore immersive 3D rooms,
         experiment with tiles and finishes, and bring your design ideas to life
-        before you make a decision. On mobile, use touch gestures to explore
-        the room.
+        before you decide. On mobile, use touch gestures to explore the room.
       </p>
 
       {/* ===== Choose a Room ===== */}
-      <h2 className="text-2xl font-semibold mb-6">
+      <h2 className="text-xl sm:text-2xl font-semibold mb-6">
         Choose a Room
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* ===== Kitchen (Available) ===== */}
-        <div className="rounded-2xl border bg-white shadow-sm overflow-hidden flex">
-          <div className="p-6 flex flex-col justify-between w-1/2">
-            <div>
-              <p className="text-xs tracking-widest text-gray-500 mb-2">
-                AVAILABLE NOW
-              </p>
-              <h3 className="text-2xl font-semibold mb-2">
-                Kitchen Visualiser
-              </h3>
-              <p className="text-gray-600 mb-6">
-                Step into a modern kitchen and swap tiles, textures, and finishes
-                in real time. Perfect for testing ideas before you renovate.
-              </p>
-            </div>
-
-            <Link
-              href="/visualiser/kitchen"
-              className="inline-block text-center rounded-full bg-[#0f172a] text-white px-6 py-3 text-sm font-medium hover:bg-[#1e293b] transition"
-            >
-              Open Kitchen Visualiser
-            </Link>
-
-            <p className="text-xs text-gray-400 mt-3">
-              Runs directly in your browser
-            </p>
-          </div>
-
+        <div className="rounded-2xl border bg-white shadow-sm overflow-hidden flex flex-col md:flex-row">
           {/* Image */}
-          <div className="w-1/2 bg-gray-200 flex items-center justify-center">
+          <div className="w-full md:w-1/2 h-56 sm:h-64 md:h-auto bg-gray-200">
             <img
               src="/images/visualiser/kitchen-preview.webp"
               alt="Kitchen Visualiser Preview"
               className="object-cover w-full h-full"
             />
+          </div>
+
+          {/* Content */}
+          <div className="p-6 flex flex-col justify-between md:w-1/2">
+            <div>
+              <p className="text-xs tracking-widest text-gray-500 mb-2">
+                AVAILABLE NOW
+              </p>
+
+              <h3 className="text-xl sm:text-2xl font-semibold mb-2">
+                Kitchen Visualiser
+              </h3>
+
+              <p className="text-gray-600 mb-6 text-sm sm:text-base">
+                Step into a modern kitchen and swap tiles, textures, and finishes
+                in real time. Perfect for testing ideas before you renovate.
+              </p>
+            </div>
+
+            <div>
+              <Link
+                href="/visualiser/kitchen"
+                className="block w-full text-center rounded-full bg-[#0f172a] text-white px-6 py-3 sm:py-3.5 text-sm sm:text-base font-medium hover:bg-[#1e293b] transition"
+              >
+                Open Kitchen Visualiser
+              </Link>
+
+              <p className="text-xs text-gray-400 mt-3 text-center md:text-left">
+                Runs directly in your browser
+              </p>
+            </div>
           </div>
         </div>
 
@@ -97,10 +101,12 @@ function ComingSoonCard({
         <p className="text-xs tracking-widest mb-2">
           COMING SOON
         </p>
-        <h3 className="text-2xl font-semibold mb-2">
+
+        <h3 className="text-xl sm:text-2xl font-semibold mb-2">
           {title}
         </h3>
-        <p className="mb-6">
+
+        <p className="mb-6 text-sm sm:text-base">
           {description}
         </p>
       </div>
