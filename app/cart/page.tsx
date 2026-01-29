@@ -91,11 +91,13 @@ export default function CartPage() {
         {/* LEFT COLUMN — ITEMS */}
         <div className="lg:col-span-2 space-y-6">
           {cart.map((item) => {
-            const isTile = item.productType === "tile";
+           const isTile = item.productType === "tile";
+const isWoodPlank = item.productType === "wood_plank";
 
-            const boxesRequired = isTile
-              ? Math.ceil((item.m2 ?? 0) / (item.coverage ?? 1))
-              : 0;
+            const boxesRequired =
+  isTile || isWoodPlank
+    ? Math.ceil((item.m2 ?? 0) / (item.coverage ?? 1))
+    : 0;
 
             return (
               <div
@@ -131,10 +133,10 @@ export default function CartPage() {
 
                   {/* PRICE LINE */}
                   <p className="text-neutral-700 font-semibold mb-4">
-                    {isTile
-                      ? `£${item.price_per_m2} per m²`
-                      : `£${(item.price_each ?? 0).toFixed(2)} each`}
-                  </p>
+                  {isTile && `£${item.price_per_m2} per m²`}
+                  {isWoodPlank && `£${item.price_per_box} per pack`}
+                  {!isTile && !isWoodPlank && `£${(item.price_each ?? 0).toFixed(2)} each`}
+                </p>
 
                   {/* QUANTITY UI */}
                   <div className="mb-4">
@@ -181,11 +183,11 @@ export default function CartPage() {
                     </div>
 
                     {/* TILE ONLY: BOX COUNT */}
-                    {isTile && (
-                      <p className="text-sm text-gray-600 mt-1">
-                        Boxes Required: <strong>{boxesRequired}</strong>
-                      </p>
-                    )}
+                    {(isTile || isWoodPlank) && (
+  <p className="text-sm text-gray-600 mt-1">
+    Packs Required: <strong>{boxesRequired}</strong>
+  </p>
+)}
                   </div>
 
                   {/* REMOVE */}

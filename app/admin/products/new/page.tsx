@@ -16,6 +16,7 @@ export default async function CreateProductPage() {
 
   const admin = supabaseAdmin();
   const id = randomUUID();
+  const slug = `product-${id}`;
   
 
   try {
@@ -26,7 +27,7 @@ export default async function CreateProductPage() {
           id,
           status: "draft",
           title: "",
-          slug: null,
+          slug,
           description: "",
 
           material: null,

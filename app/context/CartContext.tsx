@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 
 /* ==========================================================
-   CART ITEM TYPE — supports TILE + INSTALLATION products
+   CART ITEM TYPE — TILE + INSTALLATION + WOOD PLANK
    ========================================================== */
 
 export type CartItem = {
@@ -13,18 +13,32 @@ export type CartItem = {
   title: string;
   image: string;
 
-  productType: "tile" | "installation";
+  productType: "tile" | "installation" | "wood_plank";
 
-  /* TILE PRODUCT FIELDS */
+  /* --------------------------
+     TILE PRODUCT FIELDS
+  -------------------------- */
   finish?: string;
   price_per_m2?: number;
   m2?: number;
   coverage?: number; // m² per box
   boxWeight?: number; // kg per box
 
-  /* INSTALLATION PRODUCT FIELDS */
-  price_each?: number; // fixed price
-  quantity: number; // used for BOTH tiles (packs) + installation items
+  /* --------------------------
+     WOOD PLANK FIELDS
+  -------------------------- */
+  price_per_box?: number;
+  boxes?: number;
+
+  /* --------------------------
+     INSTALLATION FIELDS
+  -------------------------- */
+  price_each?: number;
+
+  /* --------------------------
+     SHARED
+  -------------------------- */
+  quantity: number;
 };
 
 /* ==========================================================
@@ -70,6 +84,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   function addItem(item: Omit<CartItem, "id">) {
     const id = crypto.randomUUID();
     setCart((prev) => [...prev, { ...item, id }]);
+
     if (typeof window !== "undefined") {
       window.dispatchEvent(
         new CustomEvent("cart:add", {
@@ -100,23 +115,39 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
      TOTAL PRICE
      ========================================================== */
   const total = cart.reduce((sum, item) => {
-    if (item.productType === "tile") {
-      return sum + (item.price_per_m2 ?? 0) * (item.m2 ?? 0);
-    } else {
-      return sum + (item.price_each ?? 0) * item.quantity;
+    switch (item.productType) {
+      case "tile":
+        return sum + (item.price_per_m2 ?? 0) * (item.m2 ?? 0);
+
+      case "wood_plank":
+        return sum + (item.price_per_box ?? 0) * (item.boxes ?? 0);
+
+      case "installation":
+        return sum + (item.price_each ?? 0) * item.quantity;
+
+      default:
+        return sum;
     }
   }, 0);
 
   /* ==========================================================
      TOTAL WEIGHT
-     Tiles use boxes → installation uses unit weight directly
      ========================================================== */
   const totalWeight = cart.reduce((sum, item) => {
-    if (item.productType === "tile") {
-      const boxes = Math.ceil((item.m2 ?? 0) / (item.coverage ?? 1));
-      return sum + boxes * (item.boxWeight ?? 0);
-    } else {
-      return sum + (item.boxWeight ?? 0) * item.quantity;
+    switch (item.productType) {
+      case "tile": {
+        const boxes = Math.ceil((item.m2 ?? 0) / (item.coverage ?? 1));
+        return sum + boxes * (item.boxWeight ?? 0);
+      }
+
+      case "wood_plank":
+        return sum + (item.boxes ?? 0) * (item.boxWeight ?? 0);
+
+      case "installation":
+        return sum + (item.boxWeight ?? 0) * item.quantity;
+
+      default:
+        return sum;
     }
   }, 0);
 

@@ -131,38 +131,67 @@ export async function POST(req: Request) {
        STRIPE LINE ITEMS
     -------------------------------- */
     const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = cart.map(
-      (item: any) => {
-        let unitAmount = 0;
-        let quantity = 1;
+  (item: any) => {
+    let unitAmount = 0;
+    let quantity = 1;
 
-        if (item.productType === "installation") {
-          unitAmount = Math.round(Number(item.price_each) * 100);
-          quantity = Number(item.quantity) || 1;
-        } else {
-          unitAmount = Math.round(
-            (Number(item.price_per_m2) || 0) * (Number(item.m2) || 0) * 100
-          );
-        }
+    /* --------------------------------
+       INSTALLATION PRODUCTS
+    -------------------------------- */
+    if (item.productType === "installation") {
+      unitAmount = Math.round(Number(item.price_each) * 100);
+      quantity = Number(item.quantity) || 1;
+    }
 
-        if (!unitAmount || unitAmount <= 0) {
-          throw new Error(`Invalid price for item: ${item.title}`);
-        }
+    /* --------------------------------
+       WOOD PLANK PRODUCTS (PER PACK)
+    -------------------------------- */
+    else if (item.productType === "wood_plank") {
+      const packs =
+        Number(item.boxes) ||
+        Math.ceil(
+          (Number(item.m2) || 0) / (Number(item.coverage) || 1)
+        );
 
-        return {
-          price_data: {
-            currency: "gbp",
-            product_data: {
-              name: item.finish
-                ? `${item.title} (${item.finish})`
-                : item.title,
-              images: item.image ? [item.image] : [],
-            },
-            unit_amount: unitAmount,
-          },
-          quantity,
-        };
-      }
-    );
+      const totalPrice =
+        Number(item.price_per_box) * packs;
+
+      unitAmount = Math.round(totalPrice * 100);
+      quantity = 1; // IMPORTANT: single line item
+    }
+
+    /* --------------------------------
+       TILE PRODUCTS (PER m²)
+    -------------------------------- */
+    else {
+      unitAmount = Math.round(
+        (Number(item.price_per_m2) || 0) *
+          (Number(item.m2) || 0) *
+          100
+      );
+      quantity = 1;
+    }
+
+    if (!unitAmount || unitAmount <= 0) {
+      throw new Error(`Invalid price for item: ${item.title}`);
+    }
+
+    return {
+      price_data: {
+        currency: "gbp",
+        product_data: {
+          name: item.finish
+            ? `${item.title} (${item.finish})`
+            : item.title,
+          images: item.image ? [item.image] : [],
+        },
+        unit_amount: unitAmount,
+      },
+      quantity,
+    };
+  }
+);
+
 
     // Delivery
     line_items.push({

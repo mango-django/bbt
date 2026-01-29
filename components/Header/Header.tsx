@@ -324,6 +324,13 @@ export default function Header() {
             Tile Visualiser
           </Link>
 
+          <Link
+            href="/wood-planks"
+            className="text-neutral-600 font-light hover:text-neutral-800"
+          >
+            Wood Planks
+          </Link>
+
           <Link href="/installation-products" className="text-neutral-600 font-light hover:text-neutral-800">
             Installation Products
           </Link>
@@ -379,6 +386,9 @@ export default function Header() {
           <Link href="/" onClick={() => setMobileMenuOpen(false)}>Home</Link>
           <Link href="/visualiser" prefetch={false} onClick={() => setMobileMenuOpen(false)}>
             Tile Visualiser
+          </Link>
+          <Link href="/wood-planks" onClick={() => setMobileMenuOpen(false)}>
+            Wood Planks
           </Link>
           <Link href="/category/wall" onClick={() => setMobileMenuOpen(false)}>
             Wall
