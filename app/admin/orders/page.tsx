@@ -3,7 +3,11 @@ import Link from "next/link";
 
  
 
-export default async function AdminOrdersPage() {
+export default async function AdminOrdersPage({
+  searchParams,
+}: {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const auth = await requireAdmin();
   if (!auth.ok) {
     return (
@@ -14,8 +18,16 @@ export default async function AdminOrdersPage() {
   }
 
   const supabase = await supabaseAdmin();
+  const params = await searchParams;
+  const rawQuery = params?.q;
+  const searchQuery =
+    typeof rawQuery === "string"
+      ? rawQuery.trim()
+      : Array.isArray(rawQuery)
+      ? rawQuery[0]?.trim()
+      : "";
 
-  const { data: orders, error } = await supabase
+  let query = supabase
     .from("orders")
     .select(`
       id,
@@ -31,6 +43,14 @@ export default async function AdminOrdersPage() {
     `)
     .order("created_at", { ascending: false });
 
+  if (searchQuery) {
+    query = query.or(
+      `order_ref.ilike.%${searchQuery}%,customer_name.ilike.%${searchQuery}%,id.ilike.%${searchQuery}%`
+    );
+  }
+
+  const { data: orders, error } = await query;
+
   if (error) {
     console.error("ORDERS LOAD ERROR:", error);
     return (
@@ -43,8 +63,17 @@ export default async function AdminOrdersPage() {
   return (
     <div className="p-6 space-y-6">
       {/* HEADER */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <h1 className="text-2xl font-bold">Orders</h1>
+        <form className="w-full md:w-80" action="/admin/orders" method="get">
+          <input
+            type="search"
+            name="q"
+            defaultValue={searchQuery}
+            placeholder="Search order ID or customer name..."
+            className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm"
+          />
+        </form>
       </div>
 
       {/* TABLE */}

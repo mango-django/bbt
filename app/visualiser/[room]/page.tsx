@@ -35,8 +35,8 @@ export default function VisualiserPage() {
     "textures" | "lighting" | "finalising" | "ready"
   >("textures");
 
-  // 📱 Drawer (tablet only, phones blocked above)
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  // Sidebar toggle (desktop + iPad)
+  const [drawerOpen, setDrawerOpen] = useState(true);
 
   /* -------------------------------------------------
      INIT VISUALISER (DESKTOP + iPAD ONLY)
@@ -134,16 +134,22 @@ export default function VisualiserPage() {
       <div className="relative z-20 flex h-full flex-col pointer-events-none">
         {/* ===== Top Bar ===== */}
         <div className="h-16 flex items-center justify-between px-4 border-b bg-[#f5f5f5] pointer-events-auto">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setDrawerOpen((open) => !open)}
+              className="text-2xl leading-none text-gray-700"
+              aria-label={drawerOpen ? "Close sidebar" : "Open sidebar"}
+            >
+              ☰
+            </button>
+          </div>
+
           <button
             onClick={() => history.back()}
-            className="flex items-center gap-2 text-sm font-medium text-gray-700"
+            className="px-6 py-1 rounded-full bg-[#5c555b] text-white text-sm hover:bg-[#4e484d] transition-colors"
           >
-            <span className="text-lg">×</span> Exit
+            Return to Store
           </button>
-
-          <div className="px-6 py-1 rounded-full bg-[#5c555b] text-white text-sm">
-            Kitchen
-          </div>
 
           <div className="text-xl text-gray-500">⋮</div>
         </div>
@@ -151,7 +157,11 @@ export default function VisualiserPage() {
         {/* ===== Body ===== */}
         <div className="flex flex-1 overflow-hidden">
           {/* ===== DESKTOP SIDEBAR ===== */}
-          <aside className="hidden md:flex w-[320px] border-r bg-white flex-col pointer-events-auto">
+          <aside
+            className={`hidden md:flex w-[320px] border-r bg-white flex-col pointer-events-auto transition-transform duration-300 ${
+              drawerOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
+          >
             <Sidebar />
           </aside>
 
@@ -172,33 +182,7 @@ export default function VisualiserPage() {
         </div>
       </div>
 
-      {/* ================= MOBILE DRAWER BUTTON (TABLET) ================= */}
-      <button
-        onClick={() => setDrawerOpen(true)}
-        className="md:hidden fixed bottom-6 right-6 z-30 bg-black text-white px-5 py-3 rounded-full shadow-lg"
-      >
-        Edit Tiles
-      </button>
-
-      {/* ================= MOBILE DRAWER ================= */}
-      {drawerOpen && (
-        <>
-          <div
-            className="fixed inset-0 bg-black/40 z-30"
-            onClick={() => setDrawerOpen(false)}
-          />
-
-          <div className="fixed bottom-0 left-0 right-0 z-40 bg-white rounded-t-2xl max-h-[75vh] flex flex-col animate-slide-up pointer-events-auto">
-            <div className="p-4 border-b flex items-center justify-between">
-              <h3 className="font-semibold">Choose Tiles</h3>
-              <button onClick={() => setDrawerOpen(false)}>✕</button>
-            </div>
-            <div className="flex-1 overflow-y-auto">
-              <Sidebar />
-            </div>
-          </div>
-        </>
-      )}
+      {/* Mobile drawer removed: visualiser not accessible on phones */}
     </div>
   );
 }
@@ -212,14 +196,14 @@ function Sidebar() {
       <div className="p-4 border-b">
         <input
           placeholder="Search tiles..."
-          className="w-full px-4 py-2 text-sm rounded-full border outline-none"
+          className="w-full px-4 py-2 text-sm rounded-full border outline-none text-neutral-700 placeholder:text-neutral-500"
         />
       </div>
 
       <div className="px-4 py-3 border-b">
         <select
           id="element-category-select"
-          className="w-full px-3 py-2 text-sm rounded-md border bg-gray-50"
+          className="w-full px-3 py-2 text-sm rounded-md border bg-gray-50 text-neutral-700"
           onChange={(event) => {
             window.dispatchEvent(
               new CustomEvent("visualiser-category-change", {

@@ -70,6 +70,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   function addItem(item: Omit<CartItem, "id">) {
     const id = crypto.randomUUID();
     setCart((prev) => [...prev, { ...item, id }]);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("cart:add", {
+          detail: { title: item.title },
+        })
+      );
+    }
   }
 
   /* UPDATE ITEM */

@@ -60,3 +60,9 @@ h6 {
   border-radius: 999px;
   transition: width 0.25s ease;
 }
+
+/* Ensure visualiser dropdown text stays dark across browsers */
+#element-category-select,
+#element-category-select option {
+  color: #404040;
+}
