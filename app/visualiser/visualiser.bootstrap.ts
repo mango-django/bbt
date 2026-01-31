@@ -1,4 +1,4 @@
-import { initVisualiser } from "./visualiser.engine";
+import { initVisualiser } from "./engines/visualiser.engine";
 
 let started = false;
 

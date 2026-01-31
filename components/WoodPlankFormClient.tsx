@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import WoodPlankImageUploader from "@/components/admin/WoodPlankImageUploader";
 
 function slugify(value: string) {
   return value
@@ -28,7 +29,6 @@ export default function WoodPlankFormClient({
 
   const [tab, setTab] = useState<"details" | "images" | "seo">("details");
   const [slugTouched, setSlugTouched] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const [form, setForm] = useState({
@@ -81,34 +81,11 @@ export default function WoodPlankFormClient({
     return payload;
   }
 
-  function getStoragePathFromPublicUrl(url: string) {
-    const marker = "/storage/v1/object/public/";
-    const index = url.indexOf(marker);
-    if (index === -1) return null;
-    return url.substring(index + marker.length);
-  }
-
-  async function deleteImage(url: string) {
-    if (!recordId) return;
-
-    const newImages = form.images.filter((img: string) => img !== url);
-    setForm((prev) => ({ ...prev, images: newImages }));
-
-    await supabase
-      .from("wood_planks")
-      .update({ images: newImages })
-      .eq("id", recordId);
-
-    const path = getStoragePathFromPublicUrl(url);
-    if (path) {
-      await supabase.storage.from("wood-planks").remove([path]);
-    }
-  }
-
   /* -------------------------------
      SAVE (draft-safe)
   -------------------------------- */
   async function save() {
+    if (saving) return;
     const payload = buildPayload();
     if (!payload) {
       alert("Title or slug is required.");
@@ -153,55 +130,6 @@ export default function WoodPlankFormClient({
     } finally {
       setSaving(false);
     }
-  }
-
-  /* -------------------------------
-     IMAGE UPLOAD (FIXED)
-  -------------------------------- */
-  async function uploadImages(files: FileList) {
-    if (!recordId) {
-      alert("Please save the draft before uploading images.");
-      return;
-    }
-
-    setUploading(true);
-
-    for (const file of Array.from(files)) {
-      const ext = file.name.split(".").pop() || "jpg";
-      const path = `${recordId}/${crypto.randomUUID()}.${ext}`;
-
-      const { error } = await supabase.storage
-        .from("wood-planks")
-        .upload(path, file, {
-  upsert: true,
-});
-
-      if (error) {
-  console.error("UPLOAD ERROR:", error);
-  alert(error.message);
-  continue;
-}
-
-      const { data } = supabase.storage
-        .from("wood-planks")
-        .getPublicUrl(path);
-
-      const newImages = [...form.images, data.publicUrl];
-
-      // update local state
-      setForm((prev) => ({
-        ...prev,
-        images: newImages,
-      }));
-
-      // Persist to DB so images show after refresh
-      await supabase
-        .from("wood_planks")
-        .update({ images: newImages })
-        .eq("id", recordId);
-    }
-
-    setUploading(false);
   }
 
   return (
@@ -315,50 +243,19 @@ export default function WoodPlankFormClient({
       {/* IMAGES TAB */}
       {tab === "images" && (
         <div>
-          <div
-            className="border-2 border-dashed p-10 text-center"
-            onDrop={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              const files = e.dataTransfer?.files;
-              if (!files || files.length === 0) return;
-              uploadImages(files);
-            }}
-            onDragOver={(e) => {
-              e.preventDefault();
-              e.dataTransfer.dropEffect = "copy";
-            }}
-            onDragEnter={(e) => {
-              e.preventDefault();
-              e.dataTransfer.dropEffect = "copy";
-            }}
-          >
-            Drag & drop images here
-          </div>
-
-          {uploading && <p>Uploading…</p>}
-
-          <div className="grid grid-cols-4 gap-4 mt-4">
-  {form.images.map((url: string) => (
-    <div
-      key={url}
-      className="relative group border"
-    >
-      <img
-        src={url}
-        className="h-32 w-full object-cover"
-      />
-
-      <button
-        onClick={() => deleteImage(url)}
-        className="absolute top-1 right-1 bg-black text-white text-xs px-2 py-1 opacity-0 group-hover:opacity-100 transition"
-      >
-        ✕
-      </button>
-    </div>
-  ))}
-</div>
-
+          {!recordId ? (
+            <p className="text-sm text-gray-500">
+              Save the draft before uploading images.
+            </p>
+          ) : (
+            <WoodPlankImageUploader
+              plankId={recordId}
+              images={form.images}
+              onChange={(images) =>
+                setForm((prev) => ({ ...prev, images }))
+              }
+            />
+          )}
         </div>
       )}
 

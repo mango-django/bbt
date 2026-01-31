@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { initVisualiser, destroyVisualiser } from "../visualiser.engine";
+import { initVisualiser, destroyVisualiser } from "../engines/visualiser.engine";
 import MobileVisualiserFallback from "../MobileVisualiserFallback";
 
 type Category =
