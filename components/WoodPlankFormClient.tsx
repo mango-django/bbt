@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { supabaseBrowser } from "@/lib/supabase/client";
 import WoodPlankImageUploader from "@/components/admin/WoodPlankImageUploader";
 
 function slugify(value: string) {
@@ -21,8 +20,6 @@ export default function WoodPlankFormClient({
   plankId?: string;
   mode?: "create" | "edit";
 }) {
-  const supabase = supabaseBrowser();
-
   const [recordId, setRecordId] = useState<string | undefined>(
     plank?.id ?? plankId
   );
@@ -92,38 +89,32 @@ export default function WoodPlankFormClient({
       return;
     }
 
+    if (!recordId) {
+      alert("Missing wood plank ID. Please refresh.");
+      return;
+    }
+
     setSaving(true);
     try {
-      if (recordId) {
-        const { error } = await supabase
-          .from("wood_planks")
-          .update(payload)
-          .eq("id", recordId);
-
-        if (error) {
-          alert(error.message);
-          return;
+      const res = await fetch(
+        `${window.location.origin}/api/admin/wood-planks/save`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: recordId,
+            ...payload,
+          }),
         }
+      );
 
-        alert("Saved");
+      const json = await res.json();
+
+      if (!json.success) {
+        alert(json.error || "Failed to save wood plank.");
         return;
       }
 
-      const { data, error } = await supabase
-        .from("wood_planks")
-        .insert({
-          ...payload,
-          images: payload.images ?? [],
-        })
-        .select("id")
-        .single();
-
-      if (error || !data) {
-        alert(error?.message ?? "Failed to create wood plank.");
-        return;
-      }
-
-      setRecordId(data.id);
       alert("Saved");
     } catch (err: any) {
       alert(err?.message ?? "Failed to save wood plank.");

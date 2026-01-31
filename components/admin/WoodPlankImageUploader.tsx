@@ -37,29 +37,35 @@ export default function WoodPlankImageUploader({
       setUploading(true);
 
       try {
-        const file = acceptedFiles[0];
-        const form = new FormData();
-        form.append("file", file);
-        form.append("plank_id", plankId);
+        const nextImages = [...images];
 
-        const res = await fetch(
-          `${window.location.origin}${resourceBasePath}/upload-image`,
-          {
-            method: "POST",
-            body: form,
+        for (const file of acceptedFiles) {
+          try {
+            const form = new FormData();
+            form.append("file", file);
+            form.append("plank_id", plankId);
+
+            const res = await fetch(
+              `${window.location.origin}${resourceBasePath}/upload-image`,
+              {
+                method: "POST",
+                body: form,
+              }
+            );
+
+            const json = await res.json();
+
+            if (!json.image?.url) {
+              alert(json.error || "Upload failed");
+              continue;
+            }
+
+            nextImages.push(json.image.url);
+            onChange([...nextImages]);
+          } catch (err) {
+            console.error("Upload failed:", err);
           }
-        );
-
-        const json = await res.json();
-
-        if (!json.image?.url) {
-          alert(json.error || "Upload failed");
-          return;
         }
-
-        onChange([...images, json.image.url]);
-      } catch (err) {
-        console.error("Upload failed:", err);
       } finally {
         setUploading(false);
       }
@@ -70,7 +76,7 @@ export default function WoodPlankImageUploader({
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { "image/*": [] },
-    multiple: false,
+    multiple: true,
   });
 
   /* ----------------------------------------------
