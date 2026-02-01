@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { supabaseServerAuth } from "@/lib/supabase/server-auth";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import WoodPlankClient from "./WoodPlankClient";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +11,7 @@ export default async function WoodPlankPage({
 }) {
   const { slug } = await params; // ✅ THIS IS THE FIX
 
-  const supabase = await supabaseServerAuth();
+  const supabase = supabaseAdmin();
 
   const decodedSlug = decodeURIComponent(slug);
 

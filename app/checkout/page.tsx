@@ -74,7 +74,7 @@ console.log("Checkout clicked");
     alert("Enter a valid postcode to calculate delivery.");
     return;
   }
-alert("You must be logged in to continue");
+
   const supabase = supabaseBrowser();
   const {
     data: { user },

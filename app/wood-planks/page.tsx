@@ -1,10 +1,10 @@
-import { supabaseServerAuth } from "@/lib/supabase/server-auth";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import WoodPlankCard from "./WoodPlankCard";
 
 export const dynamic = "force-dynamic";
 
 export default async function WoodPlanksPage() {
-  const supabase = await supabaseServerAuth();
+  const supabase = supabaseAdmin();
 
   const { data: planks, error } = await supabase
     .from("wood_planks")
