@@ -227,10 +227,16 @@ export async function POST(req: Request) {
 
       customer_email: customer.email,
 
-      metadata: {
-        order_id: order.id,
-        user_id: customer.user_id,
-      },
+     metadata: {
+  order_id: order.id,
+  user_id: customer.user_id,
+  subtotal: subtotal.toFixed(2),
+  vat: vat.toFixed(2),
+  shipping: shippingCost.toFixed(2),
+  total: total.toFixed(2),
+  cart: JSON.stringify(cart),
+},
+
     });
 
     if (!session.url) {
