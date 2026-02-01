@@ -70,11 +70,21 @@ export async function POST(req: Request) {
        CALCULATE TOTALS
     -------------------------------- */
     const subtotal = cart.reduce((sum: number, item: any) => {
-      if (item.productType === "installation") {
-        return sum + (Number(item.price_each) || 0) * (Number(item.quantity) || 1);
-      }
-      return sum + (Number(item.price_per_m2) || 0) * (Number(item.m2) || 0);
-    }, 0);
+  switch (item.productType) {
+    case "tile":
+      return sum + (item.price_per_m2 ?? 0) * (item.m2 ?? 0);
+
+    case "wood_plank":
+      return sum + (item.price_per_box ?? 0) * (item.boxes ?? 0);
+
+    case "installation":
+      return sum + (item.price_each ?? 0) * (item.quantity ?? 1);
+
+    default:
+      return sum;
+  }
+}, 0);
+
 
     const vat = subtotal * 0.2;
     const total = subtotal + vat + shippingCost;

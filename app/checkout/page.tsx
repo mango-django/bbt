@@ -69,12 +69,12 @@ export default function CheckoutPage() {
   ------------------------------------------ */
   async function handleCheckout() {
   if (!validateForm()) return;
-
+console.log("Checkout clicked");
   if (shippingCost === null) {
     alert("Enter a valid postcode to calculate delivery.");
     return;
   }
-
+alert("You must be logged in to continue");
   const supabase = supabaseBrowser();
   const {
     data: { user },
@@ -82,13 +82,14 @@ export default function CheckoutPage() {
 
   // 🔐 FORCE LOGIN
   if (!user) {
-    // store intent
-    localStorage.setItem("checkout_redirect", "/checkout");
+  localStorage.setItem("checkout_redirect", "/checkout");
 
-    // trigger auth modal
-    window.dispatchEvent(new CustomEvent("open-auth-modal"));
-    return;
-  }
+  alert("Please sign in or create an account to complete checkout.");
+
+  window.dispatchEvent(new CustomEvent("open-auth-modal"));
+  return;
+}
+
 
   const res = await fetch("/api/checkout/create-session", {
     method: "POST",
@@ -246,13 +247,16 @@ export default function CheckoutPage() {
           </div>
 
           <button
-  type="button"
-  onClick={handleCheckout}
-  disabled={shippingCost === null}
-  className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded disabled:bg-gray-400"
->
-  Pay Securely with Stripe
-</button>
+          type="button"
+          onClick={handleCheckout}
+          disabled={shippingCost === null}
+          className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded disabled:bg-gray-400"
+        >
+          {shippingCost === null
+            ? "Enter postcode to calculate delivery"
+            : "Pay Securely with Stripe"}
+        </button>
+
 
         </aside>
       </div>
