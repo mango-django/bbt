@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useMemo,
+  startTransition,
+} from "react";
 
 /* ==========================================================
    CART ITEM TYPE — TILE + INSTALLATION + WOOD PLANK
@@ -69,21 +76,47 @@ const CartContext = createContext<CartContextType | null>(null);
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
 
-  /* LOAD LOCAL STORAGE */
+  /* ----------------------------------------------------------
+     LOAD LOCAL STORAGE (ONCE)
+  ---------------------------------------------------------- */
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     const saved = localStorage.getItem("cart");
-    if (saved) setCart(JSON.parse(saved));
+    if (saved) {
+      try {
+        setCart(JSON.parse(saved));
+      } catch {
+        localStorage.removeItem("cart");
+      }
+    }
   }, []);
 
-  /* SAVE LOCAL STORAGE */
+  /* ----------------------------------------------------------
+     SAVE LOCAL STORAGE (DEFERRED – FIXES INP)
+  ---------------------------------------------------------- */
   useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
+    if (typeof window === "undefined") return;
+
+    const id = window.requestIdleCallback(
+      () => {
+        localStorage.setItem("cart", JSON.stringify(cart));
+      },
+      { timeout: 2000 }
+    );
+
+    return () => window.cancelIdleCallback(id);
   }, [cart]);
 
-  /* ADD ITEM */
+  /* ----------------------------------------------------------
+     ADD ITEM (TRANSITIONED)
+  ---------------------------------------------------------- */
   function addItem(item: Omit<CartItem, "id">) {
     const id = crypto.randomUUID();
-    setCart((prev) => [...prev, { ...item, id }]);
+
+    startTransition(() => {
+      setCart((prev) => [...prev, { ...item, id }]);
+    });
 
     if (typeof window !== "undefined") {
       window.dispatchEvent(
@@ -94,62 +127,78 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  /* UPDATE ITEM */
+  /* ----------------------------------------------------------
+     UPDATE ITEM
+  ---------------------------------------------------------- */
   function updateItem(id: string, changes: Partial<CartItem>) {
-    setCart((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, ...changes } : item))
-    );
+    startTransition(() => {
+      setCart((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, ...changes } : item))
+      );
+    });
   }
 
-  /* REMOVE ITEM */
+  /* ----------------------------------------------------------
+     REMOVE ITEM
+  ---------------------------------------------------------- */
   function removeItem(id: string) {
-    setCart((prev) => prev.filter((item) => item.id !== id));
+    startTransition(() => {
+      setCart((prev) => prev.filter((item) => item.id !== id));
+    });
   }
 
-  /* CLEAR CART */
+  /* ----------------------------------------------------------
+     CLEAR CART
+  ---------------------------------------------------------- */
   function clearCart() {
-    setCart([]);
+    startTransition(() => {
+      setCart([]);
+    });
   }
 
   /* ==========================================================
-     TOTAL PRICE
+     TOTAL PRICE (MEMOISED)
      ========================================================== */
-  const total = cart.reduce((sum, item) => {
-    switch (item.productType) {
-      case "tile":
-        return sum + (item.price_per_m2 ?? 0) * (item.m2 ?? 0);
+  const total = useMemo(() => {
+    return cart.reduce((sum, item) => {
+      switch (item.productType) {
+        case "tile":
+          return sum + (item.price_per_m2 ?? 0) * (item.m2 ?? 0);
 
-      case "wood_plank":
-        return sum + (item.price_per_box ?? 0) * (item.boxes ?? 0);
+        case "wood_plank":
+          return sum + (item.price_per_box ?? 0) * (item.boxes ?? 0);
 
-      case "installation":
-        return sum + (item.price_each ?? 0) * item.quantity;
+        case "installation":
+          return sum + (item.price_each ?? 0) * item.quantity;
 
-      default:
-        return sum;
-    }
-  }, 0);
+        default:
+          return sum;
+      }
+    }, 0);
+  }, [cart]);
 
   /* ==========================================================
-     TOTAL WEIGHT
+     TOTAL WEIGHT (MEMOISED)
      ========================================================== */
-  const totalWeight = cart.reduce((sum, item) => {
-    switch (item.productType) {
-      case "tile": {
-        const boxes = Math.ceil((item.m2 ?? 0) / (item.coverage ?? 1));
-        return sum + boxes * (item.boxWeight ?? 0);
+  const totalWeight = useMemo(() => {
+    return cart.reduce((sum, item) => {
+      switch (item.productType) {
+        case "tile": {
+          const boxes = Math.ceil((item.m2 ?? 0) / (item.coverage ?? 1));
+          return sum + boxes * (item.boxWeight ?? 0);
+        }
+
+        case "wood_plank":
+          return sum + (item.boxes ?? 0) * (item.boxWeight ?? 0);
+
+        case "installation":
+          return sum + (item.boxWeight ?? 0) * item.quantity;
+
+        default:
+          return sum;
       }
-
-      case "wood_plank":
-        return sum + (item.boxes ?? 0) * (item.boxWeight ?? 0);
-
-      case "installation":
-        return sum + (item.boxWeight ?? 0) * item.quantity;
-
-      default:
-        return sum;
-    }
-  }, 0);
+    }, 0);
+  }, [cart]);
 
   /* ==========================================================
      PROVIDER RETURN
