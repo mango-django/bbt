@@ -1,12 +1,68 @@
 import Link from "next/link";
 import LogoutButton from "@/components/account/LogoutButton";
-import CopyTrackingButton from "@/components/account/CopyTrackingButton";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { supabaseServerAuth } from "@/lib/supabase/server-auth";
-
- 
+import AccountOrdersTable from "@/components/account/AccountOrdersTable";
 
 export default async function AccountPage() {
+  async function deleteDraftOrder(orderId: string) {
+    "use server";
+
+    if (!orderId) {
+      throw new Error("Missing order ID.");
+    }
+
+    const supabase = await supabaseServerAuth();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      throw new Error("Unauthorized.");
+    }
+
+    // Safety check: must be user's draft order.
+    const { data: existingOrder, error: fetchError } = await supabase
+      .from("orders")
+      .select("status")
+      .eq("id", orderId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (fetchError || !existingOrder) {
+      throw new Error(fetchError?.message || "Draft order not found.");
+    }
+
+    if (String(existingOrder.status).toLowerCase() !== "draft") {
+      throw new Error("Only draft orders can be deleted.");
+    }
+
+    // Delete child items first (FK safety).
+    const { error: itemsDeleteError } = await supabase
+      .from("order_items")
+      .delete()
+      .eq("order_id", orderId);
+
+    if (itemsDeleteError) {
+      throw new Error(itemsDeleteError.message);
+    }
+
+    // Delete order.
+    const { error: orderDeleteError } = await supabase
+      .from("orders")
+      .delete()
+      .eq("id", orderId)
+      .eq("user_id", user.id);
+
+    if (orderDeleteError) {
+      throw new Error(orderDeleteError.message);
+    }
+
+    revalidatePath("/account", "page");
+  }
+
+
   const supabase = await supabaseServerAuth();
 
   const {
@@ -59,69 +115,7 @@ export default async function AccountPage() {
         </div>
       </div>
 
-      {/* ORDERS */}
-      <div className="bg-white shadow rounded overflow-x-auto text-neutral-700">
-        <table className="w-full text-sm text-neutral-700">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-3 text-left">Order</th>
-              <th className="p-3 text-left">Date</th>
-              <th className="p-3 text-left">Status</th>
-              <th className="p-3 text-left">Tracking</th>
-              <th className="p-3 text-right">Total</th>
-              <th className="p-3 text-right"></th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {orders?.length === 0 && (
-              <tr>
-                <td
-                  colSpan={5}
-                  className="p-6 text-center text-neutral-700"
-                >
-                  You haven’t placed any orders yet.
-                </td>
-              </tr>
-            )}
-
-            {orders?.map((order) => (
-              <tr key={order.id} className="border-t">
-                <td className="p-3 font-mono text-xs">
-                  {order.order_ref || `${order.id.slice(0, 8)}…`}
-                </td>
-
-                <td className="p-3">
-                  {new Date(order.created_at).toLocaleDateString()}
-                </td>
-
-                <td className="p-3 capitalize">{order.status}</td>
-
-                <td className="p-3">
-                  {order.tracking_number ? (
-                    <CopyTrackingButton value={order.tracking_number} />
-                  ) : (
-                    <span className="text-xs text-neutral-700">—</span>
-                  )}
-                </td>
-
-                <td className="p-3 text-right font-medium">
-                  £{order.total?.toFixed(2) ?? "0.00"}
-                </td>
-
-                <td className="p-3 text-right">
-                  <Link
-                    href={`/account/orders/${order.id}`}
-                    className="underline"
-                  >
-                    View
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <AccountOrdersTable initialOrders={orders ?? []} deleteAction={deleteDraftOrder} />
     </div>
   );
 }

@@ -12,18 +12,14 @@ export default function LogoutButton({ className }: { className?: string }) {
 
     const supabase = supabaseBrowser();
 
-    try {
-      // Clear any server cookies used by auth guards.
-      await fetch("/api/auth/logout", { method: "POST" });
-    } catch {
-      // Continue even if the API request fails.
-    }
-
-    // Always clear local session so client-side auth state resets.
-    await supabase.auth.signOut({ scope: "local" });
+    // Run both logout flows and always finish by returning the user home.
+    await Promise.allSettled([
+      fetch("/api/auth/logout", { method: "POST" }),
+      supabase.auth.signOut({ scope: "local" }),
+    ]);
 
     // Full reload to reset both client and server auth state.
-    window.location.assign("/");
+    window.location.replace("/");
   }
 
   return (

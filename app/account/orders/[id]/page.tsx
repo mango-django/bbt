@@ -30,9 +30,9 @@ export default async function CustomerOrderPage({
 
   if (error || !order) {
     return (
-      <div className="max-w-3xl mx-auto p-6">
+      <div className="max-w-3xl mx-auto p-6 text-gray-800">
         <h1 className="text-xl font-semibold">Order not found</h1>
-        <p className="text-gray-600 mt-2">
+        <p className="mt-2">
           This order does not exist or does not belong to you.
         </p>
       </div>
@@ -43,7 +43,7 @@ export default async function CustomerOrderPage({
 
   /* ---------------- RENDER ---------------- */
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-8">
+    <div className="max-w-5xl mx-auto p-6 space-y-8 text-gray-800">
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">
@@ -64,7 +64,7 @@ export default async function CustomerOrderPage({
       {/* DELIVERY */}
       <section className="bg-white shadow rounded p-6">
         <h2 className="font-semibold mb-2">Delivery Address</h2>
-        <p className="text-sm text-gray-700">
+        <p className="text-sm">
           {order.customer_name}
           <br />
           {order.address_line1}
@@ -111,7 +111,7 @@ export default async function CustomerOrderPage({
                     {item.finish && ` (${item.finish})`}
                   </div>
 
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm">
                     {item.productType === "installation"
                       ? `${item.quantity} × £${item.price_each}`
                       : `${item.m2} m² × £${item.price_per_m2}/m²`}
@@ -143,7 +143,7 @@ function Summary({
 }) {
   return (
     <div>
-      <div className="text-xs text-gray-500">{label}</div>
+      <div className="text-xs">{label}</div>
       <div className={bold ? "text-lg font-bold" : "font-medium"}>
         £{(value ?? 0).toFixed(2)}
       </div>
