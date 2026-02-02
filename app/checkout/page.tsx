@@ -13,7 +13,7 @@ export default function CheckoutPage() {
   // Redirect if basket is empty
   useEffect(() => {
     if (!cart || cart.length === 0) router.push("/cart");
-  }, [cart]);
+  }, [cart, router]);
 
   
 
@@ -35,6 +35,7 @@ export default function CheckoutPage() {
 
   const [shippingCost, setShippingCost] = useState<number | null>(null);
   const [postcodeError, setPostcodeError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (!isValidUKPostcode(postcode)) return;
@@ -68,63 +69,82 @@ export default function CheckoutPage() {
      CREATE STRIPE SESSION
   ------------------------------------------ */
   async function handleCheckout() {
+  if (isSubmitting) return;
   if (!validateForm()) return;
-console.log("Checkout clicked");
+
   if (shippingCost === null) {
     alert("Enter a valid postcode to calculate delivery.");
     return;
   }
 
-  const supabase = supabaseBrowser();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  setIsSubmitting(true);
 
-  // 🔐 FORCE LOGIN
-  if (!user) {
-  localStorage.setItem("checkout_redirect", "/checkout");
+  try {
+    const supabase = supabaseBrowser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  alert("Please sign in or create an account to complete checkout.");
+    // 🔐 FORCE LOGIN
+    if (!user) {
+      localStorage.setItem("checkout_redirect", "/checkout");
 
-  window.dispatchEvent(new CustomEvent("open-auth-modal"));
-  return;
-}
+      alert("Please sign in or create an account to complete checkout.");
 
+      window.dispatchEvent(new CustomEvent("open-auth-modal"));
+      return;
+    }
 
-  const res = await fetch("/api/checkout/create-session", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      customer: {
-        user_id: user.id,
-        fullName,
-        email,
-        phone,
-        address1,
-        address2,
-        city,
-        postcode,
-      },
-      cart,
-      shippingCost,
-    }),
-  });
+    const res = await fetch("/api/checkout/create-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        customer: {
+          user_id: user.id,
+          fullName,
+          email,
+          phone,
+          address1,
+          address2,
+          city,
+          postcode,
+        },
+        cart,
+        shippingCost,
+      }),
+    });
 
-  if (!res.ok) {
-    const errorText = await res.text();
-    alert(errorText || "Checkout error.");
-    return;
+    if (!res.ok) {
+      let message = "Checkout error.";
+      try {
+        const json = await res.json();
+        message = json?.error || message;
+      } catch {
+        const text = await res.text();
+        message = text || message;
+      }
+      alert(message);
+      return;
+    }
+
+    const data = await res.json();
+
+    if (!data?.url) {
+      alert("Checkout error.");
+      return;
+    }
+
+    // ✅ Stripe redirect
+    window.location.href = data.url;
+  } catch (err: unknown) {
+    const message =
+      err instanceof Error
+        ? err.message
+        : "Unable to start checkout. Please try again.";
+    alert(message);
+  } finally {
+    setIsSubmitting(false);
   }
-
-  const data = await res.json();
-
-  if (!data?.url) {
-    alert("Checkout error.");
-    return;
-  }
-
-  // ✅ Stripe redirect
-  window.location.href = data.url;
 }
 
 
@@ -249,10 +269,12 @@ console.log("Checkout clicked");
           <button
           type="button"
           onClick={handleCheckout}
-          disabled={shippingCost === null}
+          disabled={shippingCost === null || isSubmitting}
           className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded disabled:bg-gray-400"
         >
-          {shippingCost === null
+          {isSubmitting
+            ? "Starting secure checkout..."
+            : shippingCost === null
             ? "Enter postcode to calculate delivery"
             : "Pay Securely with Stripe"}
         </button>

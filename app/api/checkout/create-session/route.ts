@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
@@ -15,6 +15,50 @@ function generateOrderRef() {
   }
   return ref;
 }
+
+function getStripeSafeImageUrl(image: unknown): string | null {
+  if (typeof image !== "string") return null;
+  const trimmed = image.trim();
+  if (!trimmed) return null;
+
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (trimmed.startsWith("//")) return `https:${trimmed}`;
+
+  // Stripe only accepts publicly reachable absolute URLs.
+  return null;
+}
+
+type CheckoutCustomer = {
+  user_id: string;
+  fullName: string;
+  email: string;
+  phone: string;
+  address1: string;
+  address2?: string;
+  city: string;
+  postcode: string;
+};
+
+type CheckoutCartItem = {
+  title: string;
+  image?: string;
+  finish?: string;
+  productType: "tile" | "wood_plank" | "installation";
+  price_per_m2?: number;
+  m2?: number;
+  price_per_box?: number;
+  boxes?: number;
+  coverage?: number;
+  price_each?: number;
+  quantity?: number;
+  boxWeight?: number;
+};
+
+type CheckoutPayload = {
+  customer?: CheckoutCustomer;
+  cart?: CheckoutCartItem[];
+  shippingCost?: number;
+};
 
 /* ---------------------------------------------------------
    POST /api/checkout/create-session
@@ -36,7 +80,7 @@ export async function POST(req: Request) {
     /* -------------------------------
        REQUEST BODY
     -------------------------------- */
-    const body = await req.json();
+    const body = (await req.json()) as CheckoutPayload;
     const { customer, cart, shippingCost } = body;
 
     if (!customer?.user_id) {
@@ -65,7 +109,7 @@ export async function POST(req: Request) {
     /* -------------------------------
        CALCULATE TOTALS
     -------------------------------- */
-    const subtotal = cart.reduce((sum: number, item: any) => {
+    const subtotal = cart.reduce((sum, item) => {
       switch (item.productType) {
         case "tile":
           return sum + (item.price_per_m2 ?? 0) * (item.m2 ?? 0);
@@ -84,7 +128,7 @@ export async function POST(req: Request) {
     const vat = subtotal * 0.2;
     const total = subtotal + vat + shippingCost;
 
-    const shippingWeight = cart.reduce((sum: number, item: any) => {
+    const shippingWeight = cart.reduce((sum, item) => {
       if (item.productType === "installation") {
         return sum + (Number(item.boxWeight) || 0) * (Number(item.quantity) || 1);
       }
@@ -137,7 +181,7 @@ export async function POST(req: Request) {
        STRIPE LINE ITEMS
     -------------------------------- */
     const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = cart.map(
-      (item: any) => {
+      (item) => {
         let unitAmount = 0;
         let quantity = 1;
 
@@ -167,6 +211,8 @@ export async function POST(req: Request) {
           throw new Error(`Invalid price for item: ${item.title}`);
         }
 
+        const imageUrl = getStripeSafeImageUrl(item.image);
+
         return {
           price_data: {
             currency: "gbp",
@@ -174,7 +220,7 @@ export async function POST(req: Request) {
               name: item.finish
                 ? `${item.title} (${item.finish})`
                 : item.title,
-              images: item.image ? [item.image] : [],
+              ...(imageUrl ? { images: [imageUrl] } : {}),
             },
             unit_amount: unitAmount,
           },
@@ -223,7 +269,6 @@ export async function POST(req: Request) {
         vat: vat.toFixed(2),
         shipping: shippingCost.toFixed(2),
         total: total.toFixed(2),
-        cart: JSON.stringify(cart),
       },
     });
 
@@ -236,10 +281,11 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ url: session.url });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Checkout failed";
     console.error("CHECKOUT ROUTE ERROR:", err);
     return NextResponse.json(
-      { error: err.message || "Checkout failed" },
+      { error: message },
       { status: 500 }
     );
   }
