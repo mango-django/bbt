@@ -34,7 +34,7 @@ export default function WoodPlankCard({ plank }: { plank: any }) {
 
         {/* PRICE */}
         <p className="text-blue-600 font-semibold text-sm">
-          £{plank.price_per_box} / box
+          £{plank.price_per_box} / pack
         </p>
 
         {/* COVERAGE */}
@@ -43,7 +43,7 @@ export default function WoodPlankCard({ plank }: { plank: any }) {
             Coverage
           </span>
           <span className="text-base font-normal text-neutral-700">
-            {plank.coverage_per_box} m² per box
+            {plank.coverage_per_box} m² per pack
           </span>
         </div>
       </div>

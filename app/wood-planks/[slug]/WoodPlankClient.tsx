@@ -41,7 +41,7 @@ export default function WoodPlankClient({ plank }: { plank: any }) {
           <h1 className="text-3xl font-bold mb-4">{plank.title}</h1>
 
           <p className="text-2xl font-semibold mb-6">
-            £{plank.price_per_box} / box
+            £{plank.price_per_box} / pack
           </p>
 
           <p className="text-gray-600 mb-6">
@@ -60,7 +60,7 @@ export default function WoodPlankClient({ plank }: { plank: any }) {
             <table className="w-full text-sm">
               <tbody>
                 <Row
-                  label="Coverage per Box"
+                  label="Coverage per Pack"
                   value={`${plank.coverage_per_box} m²`}
                 />
                 <Row

@@ -1,23 +1,39 @@
 "use client";
 
 import { supabaseBrowser } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function LogoutButton({ className }: { className?: string }) {
-  const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   async function handleLogout() {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+
     const supabase = supabaseBrowser();
 
-    await supabase.auth.signOut();
+    try {
+      // Clear any server cookies used by auth guards.
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {
+      // Continue even if the API request fails.
+    }
 
-    // FULL reload to clear server session
-    window.location.href = "/";
+    // Always clear local session so client-side auth state resets.
+    await supabase.auth.signOut({ scope: "local" });
+
+    // Full reload to reset both client and server auth state.
+    window.location.assign("/");
   }
 
   return (
-    <button onClick={handleLogout} className={className}>
-      Log out
+    <button
+      type="button"
+      onClick={handleLogout}
+      className={className}
+      disabled={isLoggingOut}
+    >
+      {isLoggingOut ? "Logging out..." : "Log out"}
     </button>
   );
 }

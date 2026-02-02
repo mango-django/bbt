@@ -26,7 +26,7 @@ export default async function WoodPlanksPage() {
       <div className="mb-10">
         <h1 className="text-3xl font-bold mb-3">Wood Planks</h1>
         <p className="text-gray-600 max-w-2xl">
-          Premium wood plank flooring sold per box. Each product shows box
+          Premium wood plank flooring sold per pack. Each product shows pack
           coverage so you can calculate exactly what you need.
         </p>
       </div>
