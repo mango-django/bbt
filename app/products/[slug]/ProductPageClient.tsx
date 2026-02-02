@@ -119,8 +119,6 @@ export default function ProductPageClient({ product, sortedImages }: any) {
        ---------------------------------------- */
     quantity: 1,
   });
-
-  alert("Added to basket!");
 };
 
 

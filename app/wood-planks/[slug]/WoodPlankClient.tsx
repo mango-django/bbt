@@ -27,8 +27,6 @@ export default function WoodPlankClient({ plank }: { plank: any }) {
 
     quantity: 1,
   });
-
-  alert("Added to basket!");
 }
 
 

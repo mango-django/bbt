@@ -66,8 +66,6 @@ export default function InstallationProductPageClient({
       coverage: 1,
       finish: undefined,
     });
-
-    alert("Added to basket!");
   };
 
   /* ----------------------------------------------
