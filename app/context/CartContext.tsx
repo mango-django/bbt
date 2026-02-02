@@ -92,21 +92,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  /* ----------------------------------------------------------
-     SAVE LOCAL STORAGE (DEFERRED – FIXES INP)
-  ---------------------------------------------------------- */
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+/* ----------------------------------------------------------
+   SAVE LOCAL STORAGE (SAFARI SAFE – DEBOUNCED)
+---------------------------------------------------------- */
+useEffect(() => {
+  if (typeof window === "undefined") return;
 
-    const id = window.requestIdleCallback(
-      () => {
-        localStorage.setItem("cart", JSON.stringify(cart));
-      },
-      { timeout: 2000 }
-    );
+  const timeout = setTimeout(() => {
+    localStorage.setItem("cart", JSON.stringify(cart));
+  }, 300);
 
-    return () => window.cancelIdleCallback(id);
-  }, [cart]);
+  return () => clearTimeout(timeout);
+}, [cart]);
 
   /* ----------------------------------------------------------
      ADD ITEM (TRANSITIONED)
