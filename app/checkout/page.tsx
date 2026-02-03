@@ -69,80 +69,78 @@ export default function CheckoutPage() {
      CREATE STRIPE SESSION
   ------------------------------------------ */
   async function handleCheckout() {
-    if (isSubmitting) return;
-    if (!validateForm()) return;
+  if (isSubmitting) return;
+  if (!validateForm()) return;
 
-    if (shippingCost === null) {
-      alert("Enter a valid postcode to calculate delivery.");
+  if (shippingCost === null) {
+    alert("Enter a valid postcode to calculate delivery.");
+    return;
+  }
+
+  // ✅ OPEN PLACEHOLDER IMMEDIATELY (user gesture preserved)
+  const stripeWindow = window.open("about:blank", "_self");
+  if (!stripeWindow) {
+    alert("Unable to open checkout window. Please allow popups.");
+    return;
+  }
+
+  setIsSubmitting(true);
+
+  try {
+    const supabase = supabaseBrowser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      stripeWindow.close();
+      localStorage.setItem("checkout_redirect", "/checkout");
+      window.dispatchEvent(new CustomEvent("open-auth-modal"));
+      alert("Please sign in or create an account to complete checkout.");
       return;
     }
 
-    setIsSubmitting(true);
+    const res = await fetch("/api/checkout/create-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        customer: {
+          user_id: user.id,
+          fullName,
+          email,
+          phone,
+          address1,
+          address2,
+          city,
+          postcode,
+        },
+        cart,
+        shippingCost,
+      }),
+    });
 
-    try {
-      const supabase = supabaseBrowser();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+    const data = await res.json().catch(() => null);
 
-      if (!user) {
-        localStorage.setItem("checkout_redirect", "/checkout");
-        window.dispatchEvent(new CustomEvent("open-auth-modal"));
-        alert("Please sign in or create an account to complete checkout.");
-        return;
-      }
+    if (!res.ok || !data?.url) {
+      stripeWindow.close();
+      alert(data?.error || "Checkout error.");
+      return;
+    }
 
-      const res = await fetch("/api/checkout/create-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customer: {
-            user_id: user.id,
-            fullName,
-            email,
-            phone,
-            address1,
-            address2,
-            city,
-            postcode,
-          },
-          cart,
-          shippingCost,
-        }),
-      });
-
-      const data = await res.json().catch(() => null);
-
-      if (!res.ok) {
-        alert(data?.error || "Checkout error.");
-        return;
-      }
-
-      if (!data?.url) {
-        alert("Stripe checkout URL was not returned.");
-        return;
-      }
-
-      // Open immediately while still inside the click gesture
-const stripeWindow = window.open("", "_self");
-
-if (!stripeWindow) {
-  alert("Popup blocked. Please allow popups and try again.");
-  return;
+    // ✅ NAVIGATE EXISTING WINDOW
+    stripeWindow.location.href = data.url;
+  } catch (err: unknown) {
+    stripeWindow.close();
+    alert(
+      err instanceof Error
+        ? err.message
+        : "Unable to start checkout. Please try again."
+    );
+  } finally {
+    setIsSubmitting(false);
+  }
 }
 
-stripeWindow.location.href = data.url;
-
-    } catch (err: unknown) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Unable to start checkout. Please try again.";
-      alert(message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
 
 
   /* ------------------------------------------
