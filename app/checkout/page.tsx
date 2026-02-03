@@ -123,7 +123,16 @@ export default function CheckoutPage() {
         return;
       }
 
-      window.location.assign(data.url);
+      // Open immediately while still inside the click gesture
+const stripeWindow = window.open("", "_self");
+
+if (!stripeWindow) {
+  alert("Popup blocked. Please allow popups and try again.");
+  return;
+}
+
+stripeWindow.location.href = data.url;
+
     } catch (err: unknown) {
       const message =
         err instanceof Error
