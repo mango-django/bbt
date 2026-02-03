@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { supabaseAdmin } from "@/lib/supabase/admin"; // ADMIN SUPABASE (service role key)
 
@@ -20,9 +20,41 @@ export async function POST(req: Request) {
 
   try {
     event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
-  } catch (err: any) {
-    console.error("❌ Webhook signature verification failed:", err.message);
-    return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Invalid webhook signature";
+    console.error("❌ Webhook signature verification failed:", message);
+    return new NextResponse(`Webhook Error: ${message}`, { status: 400 });
+  }
+
+  // -------------------------------------------------------------
+  // HANDLE PAYMENT INTENT SUCCESS (Elements flow)
+  // -------------------------------------------------------------
+  if (event.type === "payment_intent.succeeded") {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent;
+    const metadata = paymentIntent.metadata || {};
+    const orderId = metadata.order_id;
+
+    if (!orderId) {
+      console.warn("⚠️ payment_intent.succeeded missing order_id metadata:", paymentIntent.id);
+      return NextResponse.json({ received: true });
+    }
+
+    const { error: updateError } = await supabase
+      .from("orders")
+      .update({
+        status: "paid",
+        payment_status: "paid",
+        stripe_payment_intent: paymentIntent.id,
+      })
+      .eq("id", orderId);
+
+    if (updateError) {
+      console.error("❌ Failed to mark order paid from payment intent:", updateError);
+      return new NextResponse("Webhook handler failed", { status: 500 });
+    }
+
+    console.log("✅ Order marked paid via payment_intent.succeeded:", orderId);
+    return NextResponse.json({ received: true });
   }
 
   // -------------------------------------------------------------
@@ -70,15 +102,14 @@ export async function POST(req: Request) {
       const shippingCost = Number(metadata.shippingCost || 0);
 
       // Cart from metadata
-      const cart = JSON.parse(metadata.cart || "[]");
+      const cart: Record<string, unknown>[] = JSON.parse(metadata.cart || "[]");
 
       /* -----------------------------------------------
          CALCULATE ORDER TOTALS
          ----------------------------------------------- */
-      const subtotal = cart.reduce(
-        (sum: number, item: any) => sum + item.price_per_m2 * item.m2,
-        0
-      );
+      const subtotal = cart.reduce((sum: number, item) => {
+        return sum + (Number(item.price_per_m2) || 0) * (Number(item.m2) || 0);
+      }, 0);
 
       const vat = subtotal * 0.2;
       const total = subtotal + vat + shippingCost;
@@ -117,16 +148,16 @@ export async function POST(req: Request) {
       /* -----------------------------------------------
          INSERT ORDER ITEMS
          ----------------------------------------------- */
-      const itemsToInsert = cart.map((item: any) => ({
+      const itemsToInsert = cart.map((item) => ({
         order_id: order.id,
-        product_id: item.product_id,
-        title: item.title,
-        finish: item.finish || null,
-        m2: item.m2,
-        price_per_m2: item.price_per_m2,
-        quantity: item.quantity,
-        box_weight: item.boxWeight,
-        coverage_m2: item.coverage,
+        product_id: typeof item.product_id === "string" ? item.product_id : "",
+        title: typeof item.title === "string" ? item.title : "Item",
+        finish: typeof item.finish === "string" ? item.finish : null,
+        m2: Number(item.m2) || 0,
+        price_per_m2: Number(item.price_per_m2) || 0,
+        quantity: Number(item.quantity) || 1,
+        box_weight: Number(item.boxWeight) || 0,
+        coverage_m2: Number(item.coverage) || 0,
       }));
 
       const { error: itemInsertError } = await supabase

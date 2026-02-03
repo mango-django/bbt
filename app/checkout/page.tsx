@@ -13,6 +13,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { cart, total, totalWeight } = useCart();
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
 
   // Redirect if basket is empty
   useEffect(() => {
@@ -70,70 +71,70 @@ export default function CheckoutPage() {
   }
 
   /* ------------------------------------------
-     CREATE STRIPE SESSION
+     CREATE PAYMENT INTENT
   ------------------------------------------ */
-async function handleCheckout() {
-  if (isSubmitting) return;
-  if (!validateForm()) return;
+  async function handleCheckout() {
+    if (isSubmitting) return;
+    if (!validateForm()) return;
 
-  if (shippingCost === null) {
-    alert("Enter a valid postcode to calculate delivery.");
-    return;
-  }
-
-  setIsSubmitting(true);
-
-  try {
-    const supabase = supabaseBrowser();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      localStorage.setItem("checkout_redirect", "/checkout");
-      window.dispatchEvent(new CustomEvent("open-auth-modal"));
-      alert("Please sign in or create an account to complete checkout.");
+    if (shippingCost === null) {
+      alert("Enter a valid postcode to calculate delivery.");
       return;
     }
 
-    const res = await fetch("/api/checkout/create-session", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        customer: {
-          user_id: user.id,
-          fullName,
-          email,
-          phone,
-          address1,
-          address2,
-          city,
-          postcode,
-        },
-        cart,
-        shippingCost,
-      }),
-    });
+    setIsSubmitting(true);
 
-    const data = await res.json().catch(() => null);
+    try {
+      const supabase = supabaseBrowser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-    if (!res.ok || !data?.url) {
-      alert(data?.error || "Checkout error.");
-      return;
+      if (!user) {
+        localStorage.setItem("checkout_redirect", "/checkout");
+        window.dispatchEvent(new CustomEvent("open-auth-modal"));
+        alert("Please sign in or create an account to complete checkout.");
+        return;
+      }
+
+      const res = await fetch("/api/checkout/create-payment-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customer: {
+            user_id: user.id,
+            fullName,
+            email,
+            phone,
+            address1,
+            address2,
+            city,
+            postcode,
+          },
+          cart,
+          shippingCost,
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok || !data?.clientSecret) {
+        alert(data?.error || "Unable to prepare secure payment.");
+        return;
+      }
+
+      setClientSecret(data.clientSecret);
+      setOrderId(typeof data.orderId === "string" ? data.orderId : null);
+    } catch (err) {
+      alert(
+        err instanceof Error
+          ? err.message
+          : "Unable to start checkout. Please try again."
+      );
+    } finally {
+      setIsSubmitting(false);
     }
-
-    // Redirect in the same tab to avoid blank popup tabs in production.
-    window.location.assign(data.url);
-  } catch (err) {
-    alert(
-      err instanceof Error
-        ? err.message
-        : "Unable to start checkout. Please try again."
-    );
-  } finally {
-    setIsSubmitting(false);
   }
-}
 
 
 
@@ -262,7 +263,7 @@ async function handleCheckout() {
   {/* 🔽 STRIPE ELEMENTS GOES HERE */}
   {clientSecret && (
     <Elements stripe={stripePromise} options={{ clientSecret }}>
-      <StripePaymentForm clientSecret={clientSecret} />
+      <StripePaymentForm clientSecret={clientSecret} orderId={orderId} />
     </Elements>
   )}
 

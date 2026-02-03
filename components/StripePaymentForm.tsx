@@ -9,8 +9,10 @@ import {
 
 export default function StripePaymentForm({
   clientSecret,
+  orderId,
 }: {
   clientSecret: string;
+  orderId: string | null;
 }) {
   const stripe = useStripe();
   const elements = useElements();
@@ -38,8 +40,22 @@ export default function StripePaymentForm({
     }
 
     if (result.paymentIntent?.status === "succeeded") {
-      window.location.href = "/checkout/success";
+      if (orderId) {
+        await fetch("/api/checkout/confirm-payment-intent", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            paymentIntentId: result.paymentIntent.id,
+            orderId,
+          }),
+        }).catch(() => undefined);
+      }
+      const query = orderId ? `?order_id=${encodeURIComponent(orderId)}` : "";
+      window.location.href = `/checkout/success${query}`;
+      return;
     }
+
+    setLoading(false);
   }
 
   return (
