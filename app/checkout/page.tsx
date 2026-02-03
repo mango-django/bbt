@@ -77,13 +77,6 @@ async function handleCheckout() {
     return;
   }
 
-  // ✅ Open new tab immediately (gesture preserved)
-  const stripeWindow = window.open("about:blank", "_blank");
-  if (!stripeWindow) {
-    alert("Please allow popups to continue to checkout.");
-    return;
-  }
-
   setIsSubmitting(true);
 
   try {
@@ -93,7 +86,6 @@ async function handleCheckout() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      stripeWindow.close();
       localStorage.setItem("checkout_redirect", "/checkout");
       window.dispatchEvent(new CustomEvent("open-auth-modal"));
       alert("Please sign in or create an account to complete checkout.");
@@ -122,15 +114,13 @@ async function handleCheckout() {
     const data = await res.json().catch(() => null);
 
     if (!res.ok || !data?.url) {
-      stripeWindow.close();
       alert(data?.error || "Checkout error.");
       return;
     }
 
-    // ✅ Navigate the already-opened tab
-    stripeWindow.location.href = data.url;
+    // Redirect in the same tab to avoid blank popup tabs in production.
+    window.location.assign(data.url);
   } catch (err) {
-    stripeWindow.close();
     alert(
       err instanceof Error
         ? err.message
