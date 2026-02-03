@@ -52,7 +52,7 @@ export default async function CustomerOrderPage({
   }
 
   const items: OrderItem[] = Array.isArray(order.items)
-    ? order.items.filter((item): item is OrderItem => !!item && typeof item === "object")
+    ? order.items.filter((item: unknown): item is OrderItem => !!item && typeof item === "object")
     : [];
   const isDraft = String(order.status).toLowerCase() === "draft";
 
