@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 
-const productTypes = ["adhesive", "grout", "sealer", "trim", "tool"];
+const productTypes = ["adhesive", "grout", "sealer", "trim", "tool", "heating"];
 const colours = ["N/A", "White", "Black", "Grey", "Beige", "Silver", "Jasmine"];
 
 export default function InstallationFilters() {

@@ -7,20 +7,18 @@ export default function LogoutButton({ className }: { className?: string }) {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   async function handleLogout() {
-    if (isLoggingOut) return;
-    setIsLoggingOut(true);
+  if (isLoggingOut) return;
+  setIsLoggingOut(true);
 
-    const supabase = supabaseBrowser();
+  const supabase = supabaseBrowser();
 
-    // Run both logout flows and always finish by returning the user home.
-    await Promise.allSettled([
-      fetch("/api/auth/logout", { method: "POST" }),
-      supabase.auth.signOut({ scope: "local" }),
-    ]);
-
-    // Full reload to reset both client and server auth state.
-    window.location.replace("/");
+  try {
+    await supabase.auth.signOut();
+  } finally {
+    // Hard reload guarantees cookie + state reset in prod
+    window.location.href = "/";
   }
+}
 
   return (
     <button

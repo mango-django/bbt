@@ -30,10 +30,10 @@ async function fetchInstallationProducts(params: Record<string, string | string[
     )
     .ilike("status", "active");
 
-  if (productType === "heating") {
-  query = query.or(
-    "name.ilike.%heating%,name.ilike.%underfloor%"
-  );
+ if (productType === "heating") {
+  query = query
+    .eq("product_type", "installation")
+    .or("name.ilike.%heating%,name.ilike.%underfloor%");
 } else if (productType) {
   query = query.eq("product_type", productType);
 }
