@@ -5,10 +5,14 @@ import { useCart } from "@/app/context/CartContext";
 import { useRouter } from "next/navigation";
 import { findShippingRate, isValidUKPostcode } from "@/lib/shipping";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import { Elements } from "@stripe/react-stripe-js";
+import { stripePromise } from "@/lib/stripe";
+import StripePaymentForm from "@/components/StripePaymentForm";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, total, totalWeight } = useCart();
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
 
   // Redirect if basket is empty
   useEffect(() => {
@@ -233,44 +237,59 @@ async function handleCheckout() {
         </div>
 
         {/* RIGHT: ORDER SUMMARY */}
-        <aside className="border p-6 space-y-4">
-          <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+        {/* RIGHT: ORDER SUMMARY */}
+<aside className="border p-6 space-y-4">
+  <h2 className="text-xl font-bold mb-4">Order Summary</h2>
 
-          <SummaryRow label="Subtotal:" amount={total} />
-          <SummaryRow label="VAT (20%):" amount={vat} />
-          <SummaryRow label="Total Before Delivery:" amount={beforeDelivery} />
+  <SummaryRow label="Subtotal:" amount={total} />
+  <SummaryRow label="VAT (20%):" amount={vat} />
+  <SummaryRow label="Total Before Delivery:" amount={beforeDelivery} />
 
-          <div className="flex justify-between text-sm">
-            <span>Delivery:</span>
-            <span className="font-semibold">
-              {shippingCost !== null ? `£${shippingCost.toFixed(2)}` : "Enter postcode"}
-            </span>
-          </div>
+  <div className="flex justify-between text-sm">
+    <span>Delivery:</span>
+    <span className="font-semibold">
+      {shippingCost !== null
+        ? `£${shippingCost.toFixed(2)}`
+        : "Enter postcode"}
+    </span>
+  </div>
 
-          <div className="border-t pt-4 flex justify-between text-lg font-bold">
-            <span>Total:</span>
-            <span>£{finalTotal.toFixed(2)}</span>
-          </div>
+  <div className="border-t pt-4 flex justify-between text-lg font-bold">
+    <span>Total:</span>
+    <span>£{finalTotal.toFixed(2)}</span>
+  </div>
 
-          <button
-          type="button"
-          onClick={handleCheckout}
-          disabled={shippingCost === null || isSubmitting}
-          className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded disabled:bg-gray-400"
-        >
-          {isSubmitting
-            ? "Starting secure checkout..."
-            : shippingCost === null
-            ? "Enter postcode to calculate delivery"
-            : "Pay Securely with Stripe"}
-        </button>
+  {/* 🔽 STRIPE ELEMENTS GOES HERE */}
+  {clientSecret && (
+    <Elements stripe={stripePromise} options={{ clientSecret }}>
+      <StripePaymentForm clientSecret={clientSecret} />
+    </Elements>
+  )}
 
+  {/* 🔽 KEEP your existing button ONLY if clientSecret is null */}
+  {!clientSecret && (
+    <button
+      type="button"
+      onClick={handleCheckout}
+      disabled={shippingCost === null || isSubmitting}
+      className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded disabled:bg-gray-400"
+    >
+      {isSubmitting
+        ? "Preparing secure payment..."
+        : shippingCost === null
+        ? "Enter postcode to calculate delivery"
+        : "Continue to Payment"}
+    </button>
+  )}
+</aside>
 
-        </aside>
       </div>
     </main>
   );
+  
 }
+
+
 
 /* ------------------------------------------
    SMALL COMPONENT

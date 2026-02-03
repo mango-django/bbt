@@ -9,7 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@stripe/stripe-js": "^8.6.0",
+    "@stripe/react-stripe-js": "^5.6.0",
+    "@stripe/stripe-js": "^8.7.0",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.86.2",
     "clsx": "^2.1.1",
