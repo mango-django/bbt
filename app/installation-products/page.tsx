@@ -30,7 +30,14 @@ async function fetchInstallationProducts(params: Record<string, string | string[
     )
     .ilike("status", "active");
 
-  if (productType) query = query.eq("product_type", productType);
+  if (productType === "heating") {
+  query = query.or(
+    "name.ilike.%heating%,name.ilike.%underfloor%"
+  );
+} else if (productType) {
+  query = query.eq("product_type", productType);
+}
+
   if (colour) query = query.eq("colour", colour);
   if (searchTerm) query = query.ilike("name", `%${searchTerm}%`);
 
