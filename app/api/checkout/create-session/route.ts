@@ -155,32 +155,63 @@ export async function POST(req: Request) {
     }, 0);
 
     /* -------------------------------
-       CREATE ORDER (DRAFT)
+       CREATE OR REUSE DRAFT ORDER
     -------------------------------- */
-    const orderRef = generateOrderRef();
-    const { data: order, error: orderError } = await supabase
+    const draftPayload = {
+      user_id: customer.user_id,
+      customer_name: customer.fullName,
+      customer_email: customer.email,
+      customer_phone: customer.phone,
+      address_line1: customer.address1,
+      address_line2: customer.address2 || "",
+      city: customer.city,
+      postcode: customer.postcode,
+      subtotal,
+      vat,
+      shipping_cost: shippingCost,
+      shipping_weight: shippingWeight,
+      total,
+      items: cart,
+      status: "draft",
+      payment_status: "unpaid",
+    };
+
+    const { data: existingDraft } = await supabase
       .from("orders")
-      .insert({
-        user_id: customer.user_id,
-        order_ref: orderRef,
-        status: "draft",
-        payment_status: "unpaid",
-        customer_name: customer.fullName,
-        customer_email: customer.email,
-        customer_phone: customer.phone,
-        address_line1: customer.address1,
-        address_line2: customer.address2 || "",
-        city: customer.city,
-        postcode: customer.postcode,
-        subtotal,
-        vat,
-        shipping_cost: shippingCost,
-        shipping_weight: shippingWeight,
-        total,
-        items: cart,
-      })
       .select("id")
-      .single();
+      .eq("user_id", customer.user_id)
+      .eq("status", "draft")
+      .eq("payment_status", "unpaid")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    let order: { id: string } | null = null;
+    let orderError: { message: string } | null = null;
+
+    if (existingDraft?.id) {
+      const { data, error } = await supabase
+        .from("orders")
+        .update(draftPayload)
+        .eq("id", existingDraft.id)
+        .eq("user_id", customer.user_id)
+        .select("id")
+        .single();
+      order = data;
+      orderError = error;
+    } else {
+      const orderRef = generateOrderRef();
+      const { data, error } = await supabase
+        .from("orders")
+        .insert({
+          ...draftPayload,
+          order_ref: orderRef,
+        })
+        .select("id")
+        .single();
+      order = data;
+      orderError = error;
+    }
 
     if (orderError || !order) {
       console.error("ORDER CREATE ERROR:", orderError);

@@ -1,7 +1,19 @@
 import { redirect } from "next/navigation";
 import { supabaseServerAuth } from "@/lib/supabase/server-auth";
+import AddDraftOrderToCartButton from "@/components/account/AddDraftOrderToCartButton";
 
- 
+type OrderItem = {
+  productType?: string;
+  title?: string;
+  image?: string;
+  finish?: string;
+  quantity?: number;
+  price_each?: number;
+  m2?: number;
+  price_per_m2?: number;
+  boxes?: number;
+  price_per_box?: number;
+};
 
 export default async function CustomerOrderPage({
   params,
@@ -39,7 +51,10 @@ export default async function CustomerOrderPage({
     );
   }
 
-  const items = Array.isArray(order.items) ? order.items : [];
+  const items: OrderItem[] = Array.isArray(order.items)
+    ? order.items.filter((item): item is OrderItem => !!item && typeof item === "object")
+    : [];
+  const isDraft = String(order.status).toLowerCase() === "draft";
 
   /* ---------------- RENDER ---------------- */
   return (
@@ -49,8 +64,12 @@ export default async function CustomerOrderPage({
         <h1 className="text-2xl font-bold">
           Order {order.id.slice(0, 8)}…
         </h1>
-
-        <StatusBadge status={order.status} />
+        <div className="flex items-center gap-3">
+          {isDraft && items.length > 0 && (
+            <AddDraftOrderToCartButton items={items} />
+          )}
+          <StatusBadge status={order.status} />
+        </div>
       </div>
 
       {/* SUMMARY */}
@@ -86,11 +105,13 @@ export default async function CustomerOrderPage({
         <h2 className="font-semibold mb-4">Items</h2>
 
         <div className="space-y-4">
-          {items.map((item: any, idx: number) => {
+          {items.map((item, idx: number) => {
             const lineTotal =
               item.productType === "installation"
                 ? (item.price_each ?? 0) * (item.quantity ?? 1)
-                : (item.price_per_m2 ?? 0) * (item.m2 ?? 0);
+                : item.productType === "wood_plank"
+                  ? (item.price_per_box ?? 0) * (item.boxes ?? 0)
+                  : (item.price_per_m2 ?? 0) * (item.m2 ?? 0);
 
             return (
               <div
@@ -114,7 +135,9 @@ export default async function CustomerOrderPage({
                   <div className="text-sm">
                     {item.productType === "installation"
                       ? `${item.quantity} × £${item.price_each}`
-                      : `${item.m2} m² × £${item.price_per_m2}/m²`}
+                      : item.productType === "wood_plank"
+                        ? `${item.boxes ?? 0} packs × £${item.price_per_box ?? 0}/pack`
+                        : `${item.m2} m² × £${item.price_per_m2}/m²`}
                   </div>
                 </div>
 

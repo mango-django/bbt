@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import CopyTrackingButton from "@/components/account/CopyTrackingButton";
 import DeleteDraftOrderButton from "@/components/account/DeleteDraftOrderButton";
+import AddDraftOrderToCartButton from "@/components/account/AddDraftOrderToCartButton";
 
 type AccountOrder = {
   id: string;
@@ -12,6 +13,7 @@ type AccountOrder = {
   total: number | null;
   created_at: string;
   tracking_number: string | null;
+  items?: unknown[];
 };
 
 export default function AccountOrdersTable({
@@ -81,15 +83,21 @@ export default function AccountOrdersTable({
                   </Link>
 
                   {String(order.status).toLowerCase() === "draft" && (
-                    <DeleteDraftOrderButton
-                      orderId={order.id}
-                      deleteAction={deleteAction}
-                      onDeleted={(deletedOrderId) => {
-                        setOrders((prev) =>
-                          prev.filter((existingOrder) => existingOrder.id !== deletedOrderId)
-                        );
-                      }}
-                    />
+                    <>
+                      {Array.isArray(order.items) && order.items.length > 0 && (
+                        <AddDraftOrderToCartButton items={order.items} />
+                      )}
+
+                      <DeleteDraftOrderButton
+                        orderId={order.id}
+                        deleteAction={deleteAction}
+                        onDeleted={(deletedOrderId) => {
+                          setOrders((prev) =>
+                            prev.filter((existingOrder) => existingOrder.id !== deletedOrderId)
+                          );
+                        }}
+                      />
+                    </>
                   )}
                 </div>
               </td>

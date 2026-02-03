@@ -98,7 +98,7 @@ export default async function AccountPage() {
   // 📦 Orders
   const { data: orders } = await supabase
     .from("orders")
-    .select("id, order_ref, status, total, created_at, tracking_number")
+    .select("id, order_ref, status, total, created_at, tracking_number, items")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
