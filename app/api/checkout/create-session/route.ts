@@ -73,10 +73,11 @@ export async function POST(req: Request) {
     /* -------------------------------
        ENV VALIDATION (FIXED)
     -------------------------------- */
-    const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
+    const origin = req.headers.get("origin");
+    const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || origin || "";
 
-    if (!SITE_URL || !SITE_URL.startsWith("http")) {
-      throw new Error("NEXT_PUBLIC_SITE_URL is not set");
+    if (!SITE_URL.startsWith("http")) {
+      throw new Error("Missing valid site URL for Stripe redirect");
     }
 
     /* -------------------------------
@@ -195,22 +196,29 @@ export async function POST(req: Request) {
     const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = cart.map(
       (item) => {
         let unitAmount = 0;
+        let quantity = 1;
 
         if (item.productType === "installation") {
           unitAmount = Math.round(Number(item.price_each) * 100);
+          quantity = Math.max(1, Number(item.quantity) || 1);
         } else if (item.productType === "wood_plank") {
           const packs =
             Number(item.boxes) ||
             Math.ceil(
               (Number(item.m2) || 0) / (Number(item.coverage) || 1)
             );
-          unitAmount = Math.round(Number(item.price_per_box) * packs * 100);
+          unitAmount = Math.round(Number(item.price_per_box) * 100);
+          quantity = Math.max(1, packs);
         } else {
           unitAmount = Math.round(
             (Number(item.price_per_m2) || 0) *
               (Number(item.m2) || 0) *
               100
           );
+        }
+
+        if (!Number.isFinite(unitAmount) || unitAmount <= 0) {
+          throw new Error(`Invalid Stripe amount for item: ${item.title}`);
         }
 
         const imageUrl = getStripeSafeImageUrl(item.image);
@@ -226,7 +234,7 @@ export async function POST(req: Request) {
             },
             unit_amount: unitAmount,
           },
-          quantity: 1,
+          quantity,
         };
       }
     );
@@ -265,6 +273,10 @@ export async function POST(req: Request) {
         total: total.toFixed(2),
       },
     });
+
+    if (!session.url) {
+      throw new Error("Stripe did not return a checkout URL");
+    }
 
     return NextResponse.json({ url: session.url });
   } catch (err) {
