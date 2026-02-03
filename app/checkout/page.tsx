@@ -87,13 +87,25 @@ export default function CheckoutPage() {
 
     // 🔐 FORCE LOGIN
     if (!user) {
-      localStorage.setItem("checkout_redirect", "/checkout");
+  localStorage.setItem("checkout_redirect", "/checkout");
 
-      alert("Please sign in or create an account to complete checkout.");
+  alert("Please sign in or create an account to complete checkout.");
 
-      window.dispatchEvent(new CustomEvent("open-auth-modal"));
-      return;
-    }
+  window.dispatchEvent(new CustomEvent("open-auth-modal"));
+
+  setIsSubmitting(false); // ✅ FIX
+  return;
+}
+function bail(message?: string) {
+  if (message) alert(message);
+  setIsSubmitting(false);
+  return;
+}
+if (!user) {
+  window.dispatchEvent(new CustomEvent("open-auth-modal"));
+  return bail("Please sign in or create an account to complete checkout.");
+}
+
 
     const res = await fetch("/api/checkout/create-session", {
       method: "POST",

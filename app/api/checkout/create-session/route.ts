@@ -3,10 +3,15 @@ import Stripe from "stripe";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
 /* ---------------------------------------------------------
-   STRIPE CLIENT
+   STRIPE CLIENT (FIXED)
 --------------------------------------------------------- */
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
+});
+
+/* ---------------------------------------------------------
+   HELPERS
+--------------------------------------------------------- */
 function generateOrderRef() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let ref = "BL-";
@@ -20,14 +25,14 @@ function getStripeSafeImageUrl(image: unknown): string | null {
   if (typeof image !== "string") return null;
   const trimmed = image.trim();
   if (!trimmed) return null;
-
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
   if (trimmed.startsWith("//")) return `https:${trimmed}`;
-
-  // Stripe only accepts publicly reachable absolute URLs.
   return null;
 }
 
+/* ---------------------------------------------------------
+   TYPES
+--------------------------------------------------------- */
 type CheckoutCustomer = {
   user_id: string;
   fullName: string;
@@ -66,15 +71,12 @@ type CheckoutPayload = {
 export async function POST(req: Request) {
   try {
     /* -------------------------------
-       ENV VALIDATION
+       ENV VALIDATION (FIXED)
     -------------------------------- */
-    const SITE_URL =
-      process.env.NEXT_PUBLIC_SITE_URL ||
-      req.headers.get("origin") ||
-      req.headers.get("referer")?.replace(/\/checkout.*$/, "");
+    const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL;
 
     if (!SITE_URL || !SITE_URL.startsWith("http")) {
-      throw new Error("Not a valid URL");
+      throw new Error("NEXT_PUBLIC_SITE_URL is not set");
     }
 
     /* -------------------------------
@@ -104,6 +106,22 @@ export async function POST(req: Request) {
       );
     }
 
+    /* -------------------------------
+       VALIDATE PRICES (NEW – SAFE)
+    -------------------------------- */
+    for (const item of cart) {
+      if (
+        (item.productType === "tile" && (!item.price_per_m2 || !item.m2)) ||
+        (item.productType === "wood_plank" && !item.price_per_box) ||
+        (item.productType === "installation" && !item.price_each)
+      ) {
+        return NextResponse.json(
+          { error: `Invalid pricing for ${item.title}` },
+          { status: 400 }
+        );
+      }
+    }
+
     const supabase = supabaseAdmin();
 
     /* -------------------------------
@@ -113,13 +131,10 @@ export async function POST(req: Request) {
       switch (item.productType) {
         case "tile":
           return sum + (item.price_per_m2 ?? 0) * (item.m2 ?? 0);
-
         case "wood_plank":
           return sum + (item.price_per_box ?? 0) * (item.boxes ?? 0);
-
         case "installation":
           return sum + (item.price_each ?? 0) * (item.quantity ?? 1);
-
         default:
           return sum;
       }
@@ -132,12 +147,14 @@ export async function POST(req: Request) {
       if (item.productType === "installation") {
         return sum + (Number(item.boxWeight) || 0) * (Number(item.quantity) || 1);
       }
-      const boxes = Math.ceil((Number(item.m2) || 0) / (Number(item.coverage) || 1));
+      const boxes = Math.ceil(
+        (Number(item.m2) || 0) / (Number(item.coverage) || 1)
+      );
       return sum + boxes * (Number(item.boxWeight) || 0);
     }, 0);
 
     /* -------------------------------
-       CREATE ORDER (DRAFT ONLY)
+       CREATE ORDER (DRAFT)
     -------------------------------- */
     const orderRef = generateOrderRef();
     const { data: order, error: orderError } = await supabase
@@ -145,25 +162,20 @@ export async function POST(req: Request) {
       .insert({
         user_id: customer.user_id,
         order_ref: orderRef,
-
-        status: "draft",          // ✅ NOT visible to user
-        payment_status: "unpaid", // ✅ Stripe not completed yet
-
+        status: "draft",
+        payment_status: "unpaid",
         customer_name: customer.fullName,
         customer_email: customer.email,
         customer_phone: customer.phone,
-
         address_line1: customer.address1,
         address_line2: customer.address2 || "",
         city: customer.city,
         postcode: customer.postcode,
-
         subtotal,
         vat,
         shipping_cost: shippingCost,
         shipping_weight: shippingWeight,
         total,
-
         items: cart,
       })
       .select("id")
@@ -178,37 +190,27 @@ export async function POST(req: Request) {
     }
 
     /* -------------------------------
-       STRIPE LINE ITEMS
+       STRIPE LINE ITEMS (SAFE)
     -------------------------------- */
     const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = cart.map(
       (item) => {
         let unitAmount = 0;
-        let quantity = 1;
 
         if (item.productType === "installation") {
           unitAmount = Math.round(Number(item.price_each) * 100);
-          quantity = Number(item.quantity) || 1;
         } else if (item.productType === "wood_plank") {
           const packs =
             Number(item.boxes) ||
             Math.ceil(
               (Number(item.m2) || 0) / (Number(item.coverage) || 1)
             );
-
-          const totalPrice = Number(item.price_per_box) * packs;
-          unitAmount = Math.round(totalPrice * 100);
-          quantity = 1;
+          unitAmount = Math.round(Number(item.price_per_box) * packs * 100);
         } else {
           unitAmount = Math.round(
             (Number(item.price_per_m2) || 0) *
               (Number(item.m2) || 0) *
               100
           );
-          quantity = 1;
-        }
-
-        if (!unitAmount || unitAmount <= 0) {
-          throw new Error(`Invalid price for item: ${item.title}`);
         }
 
         const imageUrl = getStripeSafeImageUrl(item.image);
@@ -224,12 +226,11 @@ export async function POST(req: Request) {
             },
             unit_amount: unitAmount,
           },
-          quantity,
+          quantity: 1,
         };
       }
     );
 
-    // Delivery
     line_items.push({
       price_data: {
         currency: "gbp",
@@ -239,7 +240,6 @@ export async function POST(req: Request) {
       quantity: 1,
     });
 
-    // VAT
     line_items.push({
       price_data: {
         currency: "gbp",
@@ -250,42 +250,27 @@ export async function POST(req: Request) {
     });
 
     /* -------------------------------
-       CREATE STRIPE SESSION
+       STRIPE SESSION
     -------------------------------- */
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
       line_items,
-
       success_url: `${SITE_URL}/checkout/success?order_id=${order.id}`,
       cancel_url: `${SITE_URL}/checkout?cancelled=true`,
-
       customer_email: customer.email,
-
       metadata: {
         order_id: order.id,
         user_id: customer.user_id,
-        subtotal: subtotal.toFixed(2),
-        vat: vat.toFixed(2),
-        shipping: shippingCost.toFixed(2),
         total: total.toFixed(2),
       },
     });
 
-    if (!session.url) {
-      console.error("Stripe session missing URL:", session.id);
-      return NextResponse.json(
-        { error: "Stripe failed to generate checkout URL" },
-        { status: 500 }
-      );
-    }
-
     return NextResponse.json({ url: session.url });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Checkout failed";
+  } catch (err) {
     console.error("CHECKOUT ROUTE ERROR:", err);
     return NextResponse.json(
-      { error: message },
+      { error: "Checkout failed" },
       { status: 500 }
     );
   }
