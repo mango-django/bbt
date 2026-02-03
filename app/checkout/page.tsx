@@ -68,7 +68,7 @@ export default function CheckoutPage() {
   /* ------------------------------------------
      CREATE STRIPE SESSION
   ------------------------------------------ */
-  async function handleCheckout() {
+async function handleCheckout() {
   if (isSubmitting) return;
   if (!validateForm()) return;
 
@@ -77,10 +77,10 @@ export default function CheckoutPage() {
     return;
   }
 
-  // ✅ OPEN PLACEHOLDER IMMEDIATELY (user gesture preserved)
-  const stripeWindow = window.open("about:blank", "_self");
+  // ✅ Open new tab immediately (gesture preserved)
+  const stripeWindow = window.open("about:blank", "_blank");
   if (!stripeWindow) {
-    alert("Unable to open checkout window. Please allow popups.");
+    alert("Please allow popups to continue to checkout.");
     return;
   }
 
@@ -127,9 +127,9 @@ export default function CheckoutPage() {
       return;
     }
 
-    // ✅ NAVIGATE EXISTING WINDOW
+    // ✅ Navigate the already-opened tab
     stripeWindow.location.href = data.url;
-  } catch (err: unknown) {
+  } catch (err) {
     stripeWindow.close();
     alert(
       err instanceof Error
@@ -140,6 +140,7 @@ export default function CheckoutPage() {
     setIsSubmitting(false);
   }
 }
+
 
 
 
