@@ -3,6 +3,7 @@ import LogoutButton from "@/components/account/LogoutButton";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { supabaseServerAuth } from "@/lib/supabase/server-auth";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import AccountOrdersTable from "@/components/account/AccountOrdersTable";
 
 export default async function AccountPage() {
@@ -14,6 +15,7 @@ export default async function AccountPage() {
     }
 
     const supabase = await supabaseServerAuth();
+    const admin = supabaseAdmin();
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -39,27 +41,37 @@ export default async function AccountPage() {
     }
 
     // Delete child items first (FK safety).
-    const { error: itemsDeleteError } = await supabase
+    const { error: itemsDeleteError } = await admin
       .from("order_items")
       .delete()
       .eq("order_id", orderId);
 
-    if (itemsDeleteError) {
+    if (
+      itemsDeleteError &&
+      !itemsDeleteError.message.toLowerCase().includes("relation")
+    ) {
       throw new Error(itemsDeleteError.message);
     }
 
-    // Delete order.
-    const { error: orderDeleteError } = await supabase
+    // Delete draft order and verify it was removed.
+    const { data: deletedOrder, error: orderDeleteError } = await admin
       .from("orders")
       .delete()
       .eq("id", orderId)
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .eq("status", "draft")
+      .select("id")
+      .maybeSingle();
 
     if (orderDeleteError) {
       throw new Error(orderDeleteError.message);
     }
+    if (!deletedOrder) {
+      throw new Error("Draft order was not deleted.");
+    }
 
     revalidatePath("/account", "page");
+    revalidatePath(`/account/orders/${orderId}`, "page");
   }
 
 

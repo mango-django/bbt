@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
+import toast from "react-hot-toast";
 
 export default function DeleteDraftOrderButton({
   orderId,
@@ -22,10 +23,11 @@ export default function DeleteDraftOrderButton({
       try {
         await deleteAction(orderId);
         onDeleted?.(orderId);
+        toast.success("Draft order deleted.");
         router.refresh();
       } catch (error) {
         console.error("Failed to delete draft order:", error);
-        alert("Could not delete this draft order. Please try again.");
+        toast.error("Could not delete this draft order. Please try again.");
       }
     });
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import CopyTrackingButton from "@/components/account/CopyTrackingButton";
 import DeleteDraftOrderButton from "@/components/account/DeleteDraftOrderButton";
@@ -22,6 +22,10 @@ export default function AccountOrdersTable({
   deleteAction: (orderId: string) => Promise<void>;
 }) {
   const [orders, setOrders] = useState(initialOrders);
+
+  useEffect(() => {
+    setOrders(initialOrders);
+  }, [initialOrders]);
 
   return (
     <div className="bg-white shadow rounded overflow-x-auto text-neutral-700">
