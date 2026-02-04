@@ -254,7 +254,7 @@ export default function Header() {
       </div>
 
       {/* ================= DESKTOP NAV ================= */}
-      <nav className="hidden md:block border-b bg-white">
+      <nav className="hidden md:block bg-white">
         <div className="max-w-7xl mx-auto px-4 flex items-center gap-8 py-3 text-neutral-600">
           <Link href="/">Home</Link>
           <Link href="/visualiser" prefetch={false}>Tile Visualiser</Link>

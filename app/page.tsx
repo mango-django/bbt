@@ -122,6 +122,14 @@ export default async function Home() {
                 className="object-cover object-center"
                 sizes="100vw"
               />
+              <div className="absolute inset-x-0 bottom-[30%] flex justify-center px-4">
+                <Link
+                  href={buildCategoryHref("floor", { application: "Floor" })}
+                  className="inline-flex items-center justify-center rounded-full border border-white/40 bg-white/20 px-7 py-3 text-sm font-medium text-white backdrop-blur-md transition hover:bg-white/30 sm:text-base"
+                >
+                  Shop Now
+                </Link>
+              </div>
             </div>
           </section>
 

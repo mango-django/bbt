@@ -344,7 +344,7 @@ WHITE_TEXTURE.colorSpace = THREE.SRGBColorSpace;
     name: "Carmo Stone Ivory",
     texturePath:"/textures/kitchen/floor/fl_carmo_stone_ivory_1200x1200.webp",
     thumbnail:("/thumbnails/kitchen/floor/carmo_stone_ivory_1200x1200.webp"),
-    productUrl: "/products/carmo-stone-ivory-1200x1200"
+    productUrl: "/products/carmo-stone-black-600x1200"
   },
   {
     id: "floor-classic-cararrra-grey-1200x1200",

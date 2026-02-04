@@ -16,6 +16,7 @@
     "clsx": "^2.1.1",
     "lil-gui": "^0.21.0",
     "next": "^16.0.7",
+    "nodemailer": "^8.0.0",
     "papaparse": "^5.5.3",
     "react": "19.2.0",
     "react-dom": "19.2.0",
@@ -32,6 +33,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/nodemailer": "^7.0.9",
     "@types/papaparse": "^5.5.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
