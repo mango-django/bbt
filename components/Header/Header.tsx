@@ -7,6 +7,8 @@ import { FiMenu, FiSearch, FiX, FiShoppingCart } from "react-icons/fi";
 import { useCart } from "@/app/context/CartContext";
 import AuthModal from "@/components/auth/AuthModal";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
+
 
 type NavCategory = {
   id: string;
@@ -123,23 +125,15 @@ export default function Header() {
     initAuth();
 
     const { data: listener } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        const user = session?.user ?? null;
-        setUserEmail(user?.email ?? null);
+  async (
+    _event: AuthChangeEvent,
+    session: Session | null
+  ) => {
+    const user = session?.user ?? null;
+    setUserEmail(user?.email ?? null);
+  }
+);
 
-        if (user) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("role")
-            .eq("id", user.id)
-            .single();
-
-          setIsAdmin(profile?.role === "admin");
-        } else {
-          setIsAdmin(false);
-        }
-      }
-    );
 
     return () => {
       mounted = false;
