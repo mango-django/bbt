@@ -3,6 +3,18 @@
 import { useEffect } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import toast from "react-hot-toast";
+import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+
+/* ------------------------------------------
+   ORDER TYPE (minimal + safe)
+------------------------------------------ */
+type Order = {
+  id: string;
+  order_ref: string;
+  status: string;
+  total: number;
+  created_at: string;
+};
 
 export default function AdminOrderNotifier() {
   useEffect(() => {
@@ -17,13 +29,21 @@ export default function AdminOrderNotifier() {
           schema: "public",
           table: "orders",
         },
-        (payload) => {
-          const order = payload.new as any;
+        (payload: RealtimePostgresChangesPayload<Order>) => {
+  const order = payload.new;
 
-          toast.success(`🛒 New order received (${order.order_ref})`, {
-            duration: 6000,
-          });
-        }
+  // ✅ TYPE GUARD (this is the missing piece)
+  if (!order || typeof order !== "object" || !("order_ref" in order)) {
+    return;
+  }
+
+  toast.success(
+    `🛒 New order received (${order.order_ref})`,
+    {
+      duration: 6000,
+    }
+  );
+}
       )
       .subscribe();
 
