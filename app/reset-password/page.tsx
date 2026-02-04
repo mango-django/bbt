@@ -14,6 +14,7 @@ export default function ResetPasswordPage() {
   const [ready, setReady] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false)
 
   useEffect(() => {
     let active = true;
@@ -64,78 +65,99 @@ export default function ResetPasswordPage() {
     };
   }, [supabase]);
 
-  async function handleReset(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError(null);
+async function handleReset(e: React.FormEvent<HTMLFormElement>) {
+  e.preventDefault();
+  setError(null);
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password,
-      });
-
-      if (error) {
-        setError(error.message);
-        return;
-      }
-
-      // Keep the user authenticated after recovery and take them to their account.
-      await supabase.auth.refreshSession();
-      router.replace("/account");
-      router.refresh();
-    } catch {
-      setError("Could not update password. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+  if (password.length < 6) {
+    setError("Password must be at least 6 characters.");
+    return;
   }
 
+  if (password !== confirmPassword) {
+    setError("Passwords do not match.");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const { error } = await supabase.auth.updateUser({
+      password,
+    });
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    // ✅ SUCCESS
+    setSuccess(true);
+  } catch {
+    setError("Could not update password. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+}
+
+
   return (
-    <main className="max-w-md mx-auto mt-20 p-6 border rounded bg-white">
-      <h1 className="text-2xl font-bold mb-4">Reset your password</h1>
+   
+  <main className="max-w-md mx-auto mt-20 p-6 border rounded bg-white">
+    {success ? (
+      <>
+        <h1 className="text-2xl font-bold mb-4">
+          Password updated successfully
+        </h1>
 
-      <form onSubmit={handleReset} className="space-y-4">
-        <input
-          type="password"
-          required
-          placeholder="New password"
-          className="w-full border p-3"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-
-        <input
-          type="password"
-          required
-          placeholder="Confirm new password"
-          className="w-full border p-3"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-        />
+        <p className="text-gray-600 mb-6">
+          Your password has been changed. You can now continue to your account.
+        </p>
 
         <button
-          type="submit"
-          disabled={loading || !ready}
-          className="w-full bg-black text-white py-3 disabled:opacity-50"
+          onClick={() => router.push("/account")}
+          className="w-full bg-black text-white py-3"
         >
-          {loading ? "Updating..." : ready ? "Reset password" : "Loading..."}
+          Continue to account
         </button>
-      </form>
+      </>
+    ) : (
+      <>
+        <h1 className="text-2xl font-bold mb-4">Reset your password</h1>
 
-      {error && (
-        <p className="mt-4 text-sm text-red-600 text-center">{error}</p>
-      )}
-    </main>
-  );
+        <form onSubmit={handleReset} className="space-y-4">
+          <input
+            type="password"
+            required
+            placeholder="New password"
+            className="w-full border p-3"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+
+          <input
+            type="password"
+            required
+            placeholder="Confirm new password"
+            className="w-full border p-3"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+          />
+
+          <button
+            type="submit"
+            disabled={loading || !ready}
+            className="w-full bg-black text-white py-3 disabled:opacity-50"
+          >
+            {loading ? "Updating..." : "Reset password"}
+          </button>
+        </form>
+
+        {error && (
+          <p className="mt-4 text-sm text-red-600 text-center">{error}</p>
+        )}
+      </>
+    )}
+  </main>
+);
 }
