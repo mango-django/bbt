@@ -13,12 +13,9 @@ import type {
   User,
 } from "@supabase/supabase-js";
 
-type NavCategory = {
-  id: string;
-  name: string;
-  slug: string;
-};
-
+/* -------------------------------------------------
+   TYPES
+------------------------------------------------- */
 type ProductSearchItem = {
   id: string;
   title: string | null;
@@ -55,7 +52,7 @@ export default function Header() {
   }, [mobileMenuOpen]);
 
   /* -------------------------------------------------
-     PRODUCT SEARCH (DESKTOP)
+     PRODUCT SEARCH
   ------------------------------------------------- */
   useEffect(() => {
     const term = searchValue.trim();
@@ -75,9 +72,7 @@ export default function Header() {
         const json = await res.json();
         setSearchResults(Array.isArray(json.products) ? json.products : []);
       } catch (err: any) {
-        if (err?.name !== "AbortError") {
-          setSearchResults([]);
-        }
+        if (err?.name !== "AbortError") setSearchResults([]);
       }
     }, 200);
 
@@ -87,12 +82,16 @@ export default function Header() {
     };
   }, [searchValue]);
 
+  /* -------------------------------------------------
+     CLOSE SEARCH ON OUTSIDE CLICK
+  ------------------------------------------------- */
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as Node;
-      const clickedDesktop = desktopSearchRef.current?.contains(target);
-      const clickedMobile = mobileSearchRef.current?.contains(target);
-      if (!clickedDesktop && !clickedMobile) {
+      if (
+        !desktopSearchRef.current?.contains(target) &&
+        !mobileSearchRef.current?.contains(target)
+      ) {
         setSearchOpen(false);
         setMobileSearchOpen(false);
       }
@@ -103,7 +102,7 @@ export default function Header() {
   }, []);
 
   /* -------------------------------------------------
-     AUTH BOOTSTRAP (FIXED + TYPED)
+     AUTH BOOTSTRAP (PERSISTENT + TYPED)
   ------------------------------------------------- */
   useEffect(() => {
     let mounted = true;
@@ -127,15 +126,14 @@ export default function Header() {
       setIsAdmin(profile?.role === "admin");
     }
 
-    // 1️⃣ INITIAL SESSION LOAD
+    // Initial load
     supabase.auth.getSession().then(
       ({ data }: { data: { session: Session | null } }) => {
-        if (!mounted) return;
         hydrateUser(data.session?.user ?? null);
       }
     );
 
-    // 2️⃣ LIVE AUTH CHANGES
+    // Live auth updates
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(
@@ -150,6 +148,9 @@ export default function Header() {
     };
   }, [supabase]);
 
+  /* =================================================
+     RENDER
+  ================================================= */
   return (
     <>
       {/* ================= TOP HEADER ================= */}
@@ -159,7 +160,7 @@ export default function Header() {
             BELLOS
           </Link>
 
-          {/* Search (desktop only) */}
+          {/* Desktop Search */}
           <div
             className="hidden md:flex flex-1 mx-4 relative"
             ref={desktopSearchRef}
@@ -186,12 +187,12 @@ export default function Header() {
             />
 
             {searchOpen && searchResults.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-white text-black rounded-md shadow-lg border border-black/10 z-50 overflow-hidden">
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white text-black rounded-md shadow-lg border z-50">
                 {searchResults.map((product) => (
                   <Link
                     key={product.id}
                     href={`/products/${product.slug ?? product.id}`}
-                    className="block w-full px-4 py-3 text-sm bg-white hover:bg-neutral-100 border-b border-black/10 last:border-b-0"
+                    className="block px-4 py-3 text-sm hover:bg-neutral-100 border-b last:border-b-0"
                     onClick={() => setSearchOpen(false)}
                   >
                     <div className="font-medium">
@@ -208,7 +209,7 @@ export default function Header() {
             )}
           </div>
 
-          {/* Right actions */}
+          {/* Right Actions */}
           <div className="flex items-center gap-4">
             {userEmail ? (
               <Link href="/account" className="flex items-center gap-2">
@@ -236,9 +237,8 @@ export default function Header() {
             </Link>
 
             <button
-              onClick={() => setMobileSearchOpen((open) => !open)}
+              onClick={() => setMobileSearchOpen((o) => !o)}
               className="md:hidden"
-              aria-label="Toggle search"
             >
               <FiSearch size={22} />
             </button>
@@ -246,7 +246,6 @@ export default function Header() {
             <button
               onClick={() => setMobileMenuOpen(true)}
               className="md:hidden"
-              aria-label="Open menu"
             >
               <FiMenu size={24} />
             </button>
@@ -254,7 +253,66 @@ export default function Header() {
         </div>
       </div>
 
-      {/* (rest of your JSX remains unchanged) */}
+      {/* ================= DESKTOP NAV ================= */}
+      <nav className="hidden md:block border-b bg-white">
+        <div className="max-w-7xl mx-auto px-4 flex items-center gap-8 py-3 text-neutral-600">
+          <Link href="/">Home</Link>
+          <Link href="/visualiser" prefetch={false}>Tile Visualiser</Link>
+          <Link href="/wood-planks">Wood Planks</Link>
+          <Link href="/installation-products">Installation Products</Link>
+          <Link href="/faqs">FAQs</Link>
+          <Link href="/about">About</Link>
+          <Link href="/contact-us">Contact</Link>
+          {isAdmin && <Link href="/admin">Admin</Link>}
+        </div>
+      </nav>
+
+      {/* ================= MOBILE MENU ================= */}
+      <div
+        className={`fixed inset-0 bg-black/40 z-40 md:hidden ${
+          mobileMenuOpen ? "block" : "hidden"
+        }`}
+        onClick={() => setMobileMenuOpen(false)}
+      />
+
+      <div
+        className={`fixed top-0 right-0 z-50 h-full w-[85%] bg-white transform transition-transform md:hidden ${
+          mobileMenuOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="flex justify-between p-4 border-b">
+          <span className="font-semibold">Menu</span>
+          <FiX size={24} onClick={() => setMobileMenuOpen(false)} />
+        </div>
+
+        <nav className="flex flex-col p-5 gap-4">
+          <Link href="/" onClick={() => setMobileMenuOpen(false)}>Home</Link>
+          <Link href="/visualiser" onClick={() => setMobileMenuOpen(false)}>Tile Visualiser</Link>
+          <Link href="/wood-planks" onClick={() => setMobileMenuOpen(false)}>Wood Planks</Link>
+          <Link href="/installation-products" onClick={() => setMobileMenuOpen(false)}>Installation Products</Link>
+          <Link href="/faqs" onClick={() => setMobileMenuOpen(false)}>FAQs</Link>
+          <Link href="/about" onClick={() => setMobileMenuOpen(false)}>About</Link>
+          <Link href="/contact-us" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
+          {isAdmin && <Link href="/admin">Admin</Link>}
+        </nav>
+
+        <div className="border-t p-5">
+          {userEmail ? (
+            <Link href="/account" onClick={() => setMobileMenuOpen(false)}>
+              Account
+            </Link>
+          ) : (
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setAuthOpen(true);
+              }}
+            >
+              Login / Sign Up
+            </button>
+          )}
+        </div>
+      </div>
 
       <AuthModal
         isOpen={authOpen}
