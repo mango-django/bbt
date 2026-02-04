@@ -3,11 +3,16 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
+type TileSize = {
+  id: string;
+  label: string;
+};
+
 export default function FiltersSidebar({ categorySlug }: { categorySlug: string }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [tileSizes, setTileSizes] = useState<any[]>([]);
+  const [tileSizes, setTileSizes] = useState<TileSize[]>([]);
 
   /* ---------------------------------------
      LOAD RANGES + TILE SIZES
@@ -95,10 +100,10 @@ export default function FiltersSidebar({ categorySlug }: { categorySlug: string 
           "Beige", "Black", "Brown", "Dark Grey", "Grey", "Light Grey",
           "White", "Cream", "Green", "Blue", "Purple", "Multi Colour"
         ].map((c) => (
-          <label key={c} className="flex items-center gap-2 mb-2">
+          <label key={c} className="flex items-center gap-3 mb-2 cursor-pointer py-1">
             <input
               type="checkbox"
-              className="h-5 w-5"
+              className="h-6 w-6 cursor-pointer accent-neutral-700"
               checked={selectedColours.includes(c)}
               onChange={() => toggleMulti("color", c)}
             />
@@ -111,10 +116,10 @@ export default function FiltersSidebar({ categorySlug }: { categorySlug: string 
       <div>
         <h3 className="font-semibold mb-3">Application</h3>
         {["Floor", "Wall", "Countertop"].map((app) => (
-          <label key={app} className="flex items-center gap-2 mb-2">
+          <label key={app} className="flex items-center gap-3 mb-2 cursor-pointer py-1">
             <input
               type="checkbox"
-              className="h-5 w-5"
+              className="h-6 w-6 cursor-pointer accent-neutral-700"
               checked={selectedApps.includes(app)}
               onChange={() => toggleMulti("application", app)}
             />
@@ -127,10 +132,10 @@ export default function FiltersSidebar({ categorySlug }: { categorySlug: string 
       <div>
         <h3 className="font-semibold mb-3">Suitable Room</h3>
         {["Any", "Lounge", "Kitchen", "Bathroom", "Commercial"].map((room) => (
-          <label key={room} className="flex items-center gap-2 mb-2">
+          <label key={room} className="flex items-center gap-3 mb-2 cursor-pointer py-1">
             <input
               type="checkbox"
-              className="h-5 w-5"
+              className="h-6 w-6 cursor-pointer accent-neutral-700"
               checked={selectedRooms.includes(room)}
               onChange={() => toggleMulti("suitable_room", room)}
             />

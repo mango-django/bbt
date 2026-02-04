@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { FiChevronLeft, FiChevronRight, FiMenu } from "react-icons/fi";
 import FiltersSidebar from "./FiltersSidebar";
 
 export default function FiltersDrawer({ categorySlug }: { categorySlug: string }) {
@@ -16,12 +17,17 @@ export default function FiltersDrawer({ categorySlug }: { categorySlug: string }
 
   return (
     <>
-      {/* FILTER BUTTON (mobile / tablet) */}
+      {/* FILTER TOGGLE TAB (mobile / tablet) */}
       <button
-        onClick={() => setOpen(true)}
-        className="md:hidden fixed bottom-6 left-6 z-40 bg-black text-white px-5 py-3 rounded-full shadow-lg"
+        onClick={() => setOpen((prev) => !prev)}
+        className="md:hidden fixed top-1/2 -translate-y-1/2 z-[60] bg-gray-300 text-gray-700 rounded-r-lg px-2 py-3 shadow-md border border-gray-400 border-l-0 transition-colors hover:bg-gray-200"
+        style={{ left: open ? "min(85vw, 24rem)" : "0" }}
+        aria-label={open ? "Close filters" : "Open filters"}
       >
-        Filters
+        <span className="flex items-center gap-1">
+          <FiMenu size={15} />
+          {open ? <FiChevronLeft size={15} /> : <FiChevronRight size={15} />}
+        </span>
       </button>
 
       {/* BACKDROP */}
@@ -34,11 +40,11 @@ export default function FiltersDrawer({ categorySlug }: { categorySlug: string }
 
       {/* SLIDE-OUT PANEL */}
       <aside
-  className={`fixed top-0 left-0 h-full w-[85%] max-w-sm bg-white z-50
-  transform transition-transform duration-300
-  md:hidden
-  ${open ? "translate-x-0" : "-translate-x-full"}`}
->
+        className={`fixed top-0 left-0 h-full w-[85%] max-w-sm bg-white z-50
+        transform transition-transform duration-300
+        md:hidden
+        ${open ? "translate-x-0" : "-translate-x-full"}`}
+      >
 
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
