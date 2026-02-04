@@ -1,24 +1,70 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 
 export default function ResetPasswordPage() {
-  const supabase = supabaseBrowser();
+  const supabase = useMemo(() => supabaseBrowser(), []);
   const router = useRouter();
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [ready, setReady] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // This ensures Supabase picks up the recovery session from the URL
-    supabase.auth.getSession();
+    let active = true;
+
+    // Ensure the recovery session from the reset link is loaded before submit.
+    void supabase.auth
+      .getSession()
+      .then(
+        ({
+          data,
+        }: {
+          data: {
+            session: Session | null;
+          };
+        }) => {
+          if (!active) return;
+
+          if (!data.session) {
+            setError(
+              "Reset link is invalid or expired. Please request a new one."
+            );
+          }
+
+          setReady(true);
+        }
+      )
+      .catch(() => {
+        if (!active) return;
+        setError(
+          "Could not validate reset link. Please request a new one."
+        );
+        setReady(true);
+      });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(
+      (event: AuthChangeEvent) => {
+        if (event === "PASSWORD_RECOVERY") {
+          setError(null);
+        }
+      }
+    );
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, [supabase]);
 
-  async function handleReset(e: React.FormEvent) {
+  async function handleReset(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
 
@@ -34,18 +80,25 @@ export default function ResetPasswordPage() {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.updateUser({
-      password,
-    });
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password,
+      });
 
-    if (error) {
-      setError(error.message);
+      if (error) {
+        setError(error.message);
+        return;
+      }
+
+      // Keep the user authenticated after recovery and take them to their account.
+      await supabase.auth.refreshSession();
+      router.replace("/account");
+      router.refresh();
+    } catch {
+      setError("Could not update password. Please try again.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    // Success → send to login or account
-    router.push("/login");
   }
 
   return (
@@ -73,10 +126,10 @@ export default function ResetPasswordPage() {
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !ready}
           className="w-full bg-black text-white py-3 disabled:opacity-50"
         >
-          {loading ? "Updating..." : "Reset password"}
+          {loading ? "Updating..." : ready ? "Reset password" : "Loading..."}
         </button>
       </form>
 
