@@ -116,11 +116,12 @@ export default async function Home() {
           <section className="mt-4">
             <div className="relative w-full h-[420px] sm:h-[520px] lg:h-[720px] overflow-hidden">
               <Image
-  src="/hero-home-bellos-bathroom.webp"
-  alt="Luxury bathroom tiles by Bellos Bespoke Tiles"
-  fill
-  sizes="(max-width: 768px) 100vw, 50vw"
-/>
+                src="/hero-home-bellos-bathroom.webp"
+                alt="Luxury bathroom tiles by Bellos Bespoke Tiles"
+                fill
+                className="object-cover object-center"
+                sizes="100vw"
+              />
             </div>
           </section>
 
