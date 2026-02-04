@@ -52,8 +52,8 @@ export default function ResetPasswordPage() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(
-      (event: AuthChangeEvent) => {
-        if (event === "PASSWORD_RECOVERY") {
+      (event: AuthChangeEvent, session: Session | null) => {
+        if (event === "PASSWORD_RECOVERY" && session) {
           setError(null);
         }
       }

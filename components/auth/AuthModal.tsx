@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
+import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
+
 
 type Mode = "login" | "signup" | "forgot";
 
@@ -30,12 +32,16 @@ export default function AuthModal({
     if (!isOpen) return;
 
     const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (session?.user) {
-          onClose();
-          window.location.href = redirectTo;
-        }
-      }
+      (
+  _event: AuthChangeEvent,
+  session: Session | null
+) => {
+  if (session?.user) {
+    onClose();
+    window.location.href = redirectTo;
+  }
+}
+
     );
 
     return () => {
