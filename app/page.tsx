@@ -76,7 +76,7 @@ const quickCategoriesData = [
    DATA
 --------------------------------------------- */
 async function getFeaturedProducts(): Promise<ProductListItem[]> {
-  const supabase = supabaseServer();
+  const supabase = await supabaseServer();
 
   const { data } = await supabase
     .from("products")

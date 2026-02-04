@@ -276,7 +276,7 @@ export default function Header() {
       />
 
       <div
-        className={`fixed top-0 right-0 z-50 h-full w-[85%] bg-white transform transition-transform md:hidden ${
+        className={`fixed top-0 right-0 z-50 h-full w-[85%] bg-white text-neutral-700 transform transition-transform md:hidden ${
           mobileMenuOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >

@@ -9,6 +9,7 @@ const PRODUCT_TYPES = [
   "sealer",
   "trim",
   "tool",
+  "heating",
   "levelling",
   "primer",
 ] as const;

@@ -7,7 +7,7 @@ export default async function InstallationProductPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const supabase = supabaseServer();
+  const supabase = await supabaseServer();
 
   const { data, error } = await supabase
     .from("installation_products")
