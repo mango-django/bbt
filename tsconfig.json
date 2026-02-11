@@ -29,7 +29,7 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-  ],
+, "app/visualiser/[room]/page.tsx.bak", "app/visualiser/engines/index.ts.bak"  ],
   "exclude": ["node_modules"]
 
   

@@ -105,3 +105,4 @@ export default function CheckoutSuccessClient() {
     </main>
   );
 }
+seen_by_admin: false

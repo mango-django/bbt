@@ -21,13 +21,13 @@ export default function VisualiserHubPage() {
       </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* ===== Kitchen (Available) ===== */}
+        {/* ===== Bathroom (Available) ===== */}
         <div className="rounded-2xl border bg-white shadow-sm overflow-hidden flex flex-col md:flex-row">
           {/* Image */}
           <div className="w-full md:w-1/2 h-56 sm:h-64 md:h-auto bg-gray-200">
             <img
-              src="/images/visualiser/kitchen-preview.webp"
-              alt="Kitchen Visualiser Preview"
+              src="/hero-bellos-bathroom.webp"
+              alt="Bathroom Visualiser Preview"
               className="object-cover w-full h-full"
             />
           </div>
@@ -40,21 +40,21 @@ export default function VisualiserHubPage() {
               </p>
 
               <h3 className="text-xl sm:text-2xl font-semibold mb-2">
-                Kitchen Visualiser
+                Bathroom Visualiser
               </h3>
 
               <p className="text-gray-600 mb-6 text-sm sm:text-base">
-                Step into a modern kitchen and swap tiles, textures, and finishes
-                in real time. Perfect for testing ideas before you renovate.
+                Explore bathroom layouts and finishes, and swap tiles to test
+                ideas before you renovate.
               </p>
             </div>
 
             <div>
               <Link
-                href="/visualiser/kitchen"
+                href="/visualiser/bathroom"
                 className="block w-full text-center rounded-full bg-[#0f172a] text-white px-6 py-3 sm:py-3.5 text-sm sm:text-base font-medium hover:bg-[#1e293b] transition"
               >
-                Open Kitchen Visualiser
+                Open Bathroom Visualiser
               </Link>
 
               <p className="text-xs text-gray-400 mt-3 text-center md:text-left">
@@ -63,12 +63,6 @@ export default function VisualiserHubPage() {
             </div>
           </div>
         </div>
-
-        {/* ===== Bathroom (Coming Soon) ===== */}
-        <ComingSoonCard
-          title="Bathroom Visualiser"
-          description="Soon you'll be able to explore bathroom layouts, tiles, and finishes in the same immersive way."
-        />
 
         {/* ===== Living Room ===== */}
         <ComingSoonCard

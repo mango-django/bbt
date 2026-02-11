@@ -1,0 +1,15 @@
+"use client";
+import { useEffect } from "react";
+import { initBathroom, destroyBathroom } from "./bathroom.engine";
+
+export type VisualiserType = "bathroom";
+
+export function initEngine(type: VisualiserType) {
+  if (type === "bathroom") {
+    initBathroom();
+  }
+}
+
+export function destroyEngine(type: VisualiserType) {
+  if (type === "bathroom") destroyBathroom();
+}
