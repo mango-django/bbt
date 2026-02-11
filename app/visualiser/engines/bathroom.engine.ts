@@ -49,13 +49,11 @@ const TILES: TileProduct[] = [
     material: "Glazed Porcelain",
     suitability: "Indoor",
     sku: "AMDG-001",
-    wallImage: "/visualiser/bathroom/walls/wl_amani_marble_dark_grey.png",
-    floorImage: "/visualiser/bathroom/floors/fl_amani_marble_dark_grey.png",
-    thumbnail: "/visualiser/bathroom/thumbnails/amani_marble_dark_grey.png",
+    wallImage: "/visualiser/bathroom/walls/wl_amani_marble_dark_grey.webp",
+    floorImage: "/visualiser/bathroom/floors/fl_amani_marble_dark_grey.webp",
+    thumbnail: "/visualiser/bathroom/thumbnails/amani_marble_dark_grey.webp",
     productUrl: "/products/amani-marble-dark-grey-1200x1200",
   },
-  
-  
   {
     id: "amani-marble-light-grey",
     name: "Amani Marble Light Grey",
@@ -66,12 +64,11 @@ const TILES: TileProduct[] = [
     material: "Glazed Porcelain",
     suitability: "Indoor",
     sku: "AMLG-001",
-    wallImage: "/visualiser/bathroom/walls/wl_amani_marble_light_grey.png",
-    floorImage: "/visualiser/bathroom/floors/fl_amani_marble_light_grey.png",
-    thumbnail: "/visualiser/bathroom/thumbnails/amani_marble_light_grey.png",
+    wallImage: "/visualiser/bathroom/walls/wl_amani_marble_light_grey.webp",
+    floorImage: "/visualiser/bathroom/floors/fl_amani_marble_light_grey.webp",
+    thumbnail: "/visualiser/bathroom/thumbnails/amani_marble_light_grey.webp",
     productUrl: "/products/amani-marble-light-grey-1200x1200",
   },
-
   {
     id: "breccia-adige",
     name: "Breccia Adige",
@@ -82,12 +79,11 @@ const TILES: TileProduct[] = [
     material: "Glazed Porcelain",
     suitability: "Indoor",
     sku: "BA-002",
-    wallImage: "/visualiser/bathroom/walls/wl_breccia_adige.png",
-    floorImage: "/visualiser/bathroom/floors/fl_breccia_adige.png",
-    thumbnail: "/visualiser/bathroom/thumbnails/breccia_adige.png",
+    wallImage: "/visualiser/bathroom/walls/wl_breccia_adige.webp",
+    floorImage: "/visualiser/bathroom/floors/fl_breccia_adige.webp",
+    thumbnail: "/visualiser/bathroom/thumbnails/breccia_adige.webp",
     productUrl: "/products/breccia-adige-grey-1200x1200",
   },
-
   {
     id: "calacatta-africa-white",
     name: "Calacatta Africa White",
@@ -98,12 +94,11 @@ const TILES: TileProduct[] = [
     material: "Glazed Porcelain",
     suitability: "Indoor",
     sku: "CAW-003",
-    wallImage: "/visualiser/bathroom/walls/wl_calacatta_africa_white.png",
-    floorImage: "/visualiser/bathroom/floors/fl_calacatta_africa_white.png",
-    thumbnail: "/visualiser/bathroom/thumbnails/calacatta_africa_white.png",
+    wallImage: "/visualiser/bathroom/walls/wl_calacatta_africa_white.webp",
+    floorImage: "/visualiser/bathroom/floors/fl_calacatta_africa_white.webp",
+    thumbnail: "/visualiser/bathroom/thumbnails/calacatta_africa_white.webp",
     productUrl: "/products/calacatta-africa-white-1200x1200",
   },
-
   {
     id: "calacatta-gold-white",
     name: "Calacatta Gold White",
@@ -114,12 +109,11 @@ const TILES: TileProduct[] = [
     material: "Glazed Porcelain",
     suitability: "Indoor",
     sku: "CGW-004",
-    wallImage: "/visualiser/bathroom/walls/wl_calacatta_gold_white.png",
-    floorImage: "/visualiser/bathroom/floors/fl_calacatta_gold_white.png",
-    thumbnail: "/visualiser/bathroom/thumbnails/calacatta_gold_white.png",
+    wallImage: "/visualiser/bathroom/walls/wl_calacatta_gold_white.webp",
+    floorImage: "/visualiser/bathroom/floors/fl_calacatta_gold_white.webp",
+    thumbnail: "/visualiser/bathroom/thumbnails/calacatta_gold_white.webp",
     productUrl: "/products/calacatta-gold-white-1200x1200",
   },
-
   {
     id: "carmo-stone-black",
     name: "Carmo Stone Black",
@@ -130,12 +124,11 @@ const TILES: TileProduct[] = [
     material: "Glazed Porcelain",
     suitability: "Indoor",
     sku: "CSB-005",
-    wallImage: "/visualiser/bathroom/walls/wl_carmo_stone_black.png",
-    floorImage: "/visualiser/bathroom/floors/fl_carmo_stone_black.png",
-    thumbnail: "/visualiser/bathroom/thumbnails/carmo_stone_black.png",
+    wallImage: "/visualiser/bathroom/walls/wl_carmo_stone_black.webp",
+    floorImage: "/visualiser/bathroom/floors/fl_carmo_stone_black.webp",
+    thumbnail: "/visualiser/bathroom/thumbnails/carmo_stone_black.webp",
     productUrl: "/products/carmo-stone-black-600x1200",
   },
-
   {
     id: "carmo-stone-grey",
     name: "Carmo Stone Grey",
@@ -146,12 +139,11 @@ const TILES: TileProduct[] = [
     material: "Glazed Porcelain",
     suitability: "Indoor",
     sku: "CSG-006",
-    wallImage: "/visualiser/bathroom/walls/wl_carmo_stone_grey.png",
-    floorImage: "/visualiser/bathroom/floors/fl_carmo_stone_grey.png",
-    thumbnail: "/visualiser/bathroom/thumbnails/carmo_stone_grey.png",
+    wallImage: "/visualiser/bathroom/walls/wl_carmo_stone_grey.webp",
+    floorImage: "/visualiser/bathroom/floors/fl_carmo_stone_grey.webp",
+    thumbnail: "/visualiser/bathroom/thumbnails/carmo_stone_grey.webp",
     productUrl: "/products/carmo-stone-grey-600x1200",
   },
-
   {
     id: "carmo-stone-ivory",
     name: "Carmo Stone Ivory",
@@ -162,12 +154,11 @@ const TILES: TileProduct[] = [
     material: "Glazed Porcelain",
     suitability: "Indoor",
     sku: "CSI-007",
-    wallImage: "/visualiser/bathroom/walls/wl_carmo_stone_ivory.png",
-    floorImage: "/visualiser/bathroom/floors/fl_carmo_stone_ivory.png",
-    thumbnail: "/visualiser/bathroom/thumbnails/carmo_stone_ivory.png",
+    wallImage: "/visualiser/bathroom/walls/wl_carmo_stone_ivory.webp",
+    floorImage: "/visualiser/bathroom/floors/fl_carmo_stone_ivory.webp",
+    thumbnail: "/visualiser/bathroom/thumbnails/carmo_stone_ivory.webp",
     productUrl: "/products/carmo-stone-ivory-600x1200",
   },
-
   {
     id: "carmo-stone-anthracite",
     name: "Carmo Stone Anthracite",
@@ -178,12 +169,11 @@ const TILES: TileProduct[] = [
     material: "Glazed Porcelain",
     suitability: "Indoor",
     sku: "CSA-008",
-    wallImage: "/visualiser/bathroom/walls/wl_carmo-stone-anthracite.png",
-    floorImage: "/visualiser/bathroom/floors/fl_carmo-stone-anthracite.png",
-    thumbnail: "/visualiser/bathroom/thumbnails/carmo_stone_anthracite.png",
+    wallImage: "/visualiser/bathroom/walls/wl_carmo-stone-anthracite.webp",
+    floorImage: "/visualiser/bathroom/floors/fl_carmo-stone-anthracite.webp",
+    thumbnail: "/visualiser/bathroom/thumbnails/carmo_stone_anthracite.webp",
     productUrl: "/products/carmo-stone-anthracite-600x1200",
   },
-
   {
     id: "classic-carrera",
     name: "Classic Carrera",
@@ -194,12 +184,11 @@ const TILES: TileProduct[] = [
     material: "Glazed Porcelain",
     suitability: "Indoor",
     sku: "CC-009",
-    wallImage: "/visualiser/bathroom/walls/wl_classic_carrera.png",
-    floorImage: "/visualiser/bathroom/floors/fl_classic_carrera.png",
-    thumbnail: "/visualiser/bathroom/thumbnails/classic_carrera.png",
+    wallImage: "/visualiser/bathroom/walls/wl_classic_carrera.webp",
+    floorImage: "/visualiser/bathroom/floors/fl_classic_carrera.webp",
+    thumbnail: "/visualiser/bathroom/thumbnails/classic_carrera.webp",
     productUrl: "/products/classic-carrera-1200x1200",
   },
-
   {
     id: "surface-2-0-ash",
     name: "Surface 2.0 Ash",
@@ -210,12 +199,11 @@ const TILES: TileProduct[] = [
     material: "Glazed Porcelain",
     suitability: "Indoor",
     sku: "S2A-010",
-    wallImage: "/visualiser/bathroom/walls/wl_surface_2.0_ash.png",
-    floorImage: "/visualiser/bathroom/floors/fl_surface_2.0_ash.png",
-    thumbnail: "/visualiser/bathroom/thumbnails/surface_2_0_ash.png",
+    wallImage: "/visualiser/bathroom/walls/wl_surface_2.0_ash.webp",
+    floorImage: "/visualiser/bathroom/floors/fl_surface_2.0_ash.webp",
+    thumbnail: "/visualiser/bathroom/thumbnails/surface_2_0_ash.webp",
     productUrl: "/products/surface-2-0-ash-600x1200",
   },
-
   {
     id: "surface-2-0-cool-grey",
     name: "Surface 2.0 Cool Grey",
@@ -226,12 +214,11 @@ const TILES: TileProduct[] = [
     material: "Glazed Porcelain",
     suitability: "Indoor",
     sku: "S2CG-011",
-    wallImage: "/visualiser/bathroom/walls/wl_surface_2.0_cool_grey.png",
-    floorImage: "/visualiser/bathroom/floors/fl_surface_2.0_cool_grey.png",
-    thumbnail: "/visualiser/bathroom/thumbnails/surface_2_0_cool_grey.png",
+    wallImage: "/visualiser/bathroom/walls/wl_surface_2.0_cool_grey.webp",
+    floorImage: "/visualiser/bathroom/floors/fl_surface_2.0_cool_grey.webp",
+    thumbnail: "/visualiser/bathroom/thumbnails/surface_2_0_cool_grey.webp",
     productUrl: "/products/surface-2-0-cool-grey-1200x1200",
   },
-
   {
     id: "surface-2-0-mid-grey",
     name: "Surface 2.0 Mid Grey",
@@ -242,12 +229,11 @@ const TILES: TileProduct[] = [
     material: "Glazed Porcelain",
     suitability: "Indoor",
     sku: "S2MG-012",
-    wallImage: "/visualiser/bathroom/walls/wl_surface_2.0_mid_grey.png",
-    floorImage: "/visualiser/bathroom/floors/fl_surface_2.0_mid_grey.png",
-    thumbnail: "/visualiser/bathroom/thumbnails/surface_2_0_mid_grey.png",
+    wallImage: "/visualiser/bathroom/walls/wl_surface_2.0_mid_grey.webp",
+    floorImage: "/visualiser/bathroom/floors/fl_surface_2.0_mid_grey.webp",
+    thumbnail: "/visualiser/bathroom/thumbnails/surface_2_0_mid_grey.webp",
     productUrl: "/products/surface-2-0-mid-grey-1200x1200",
   },
-
   {
     id: "surface-2-0-off-white",
     name: "Surface 2.0 Off White",
@@ -258,12 +244,13 @@ const TILES: TileProduct[] = [
     material: "Glazed Porcelain",
     suitability: "Indoor",
     sku: "S2OW-013",
-    wallImage: "/visualiser/bathroom/walls/wl_surface_2.0_off_white.png",
-    floorImage: "/visualiser/bathroom/floors/fl_surface_2.0_off_white.png",
-    thumbnail: "/visualiser/bathroom/thumbnails/surface_2_0_off_white.png",
+    wallImage: "/visualiser/bathroom/walls/wl_surface_2.0_off_white.webp",
+    floorImage: "/visualiser/bathroom/floors/fl_surface_2.0_off_white.webp",
+    thumbnail: "/visualiser/bathroom/thumbnails/surface_2_0_off_white.webp",
     productUrl: "/products/surface-2-0-off-white-1200x1200",
   },
 ];
+
 
 
 
@@ -539,14 +526,14 @@ function renderMobileStrip(tiles: TileProduct[]) {
           type="button"
           data-id="${tile.id}"
           data-index="${index}"
-          class="shrink-0 rounded-lg border ${
+          class="shrink-0 rounded-lg border p-1 bg-white ${
             tile.id === activeTileId ? "border-black" : "border-gray-300"
           }"
         >
           <img
             src="${tile.thumbnail}"
             alt="${tile.name}"
-            class="w-20 h-20 object-cover rounded-lg"
+            class="w-20 h-20 object-cover rounded"
           />
         </button>
       `
