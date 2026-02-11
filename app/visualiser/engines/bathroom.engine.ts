@@ -361,8 +361,8 @@ if (nameDisplay) {
     })
   );
 
-queueLayerScale();
-renderTileList(TILES);
+  queueLayerScale();
+  updateMobileSelection();
 }
 
 function queueLayerScale() {
@@ -534,18 +534,20 @@ function renderMobileStrip(tiles: TileProduct[]) {
       ${tiles
         .map(
           (tile, index) => `
-        <div class="shrink-0">
-          <img 
-            src="${tile.thumbnail}" 
-            data-index="${index}"
-            class="w-20 h-20 object-cover rounded-lg border cursor-pointer
-              ${
-                index === activeTileIndex
-                  ? "border-black"
-                  : "border-gray-300"
-              }"
+        <button
+          type="button"
+          data-id="${tile.id}"
+          data-index="${index}"
+          class="shrink-0 rounded-lg border ${
+            tile.id === activeTileId ? "border-black" : "border-gray-300"
+          }"
+        >
+          <img
+            src="${tile.thumbnail}"
+            alt="${tile.name}"
+            class="w-20 h-20 object-cover rounded-lg"
           />
-        </div>
+        </button>
       `
         )
         .join("")}
@@ -553,15 +555,50 @@ function renderMobileStrip(tiles: TileProduct[]) {
   `;
 
   listContainer
-    ?.querySelectorAll("img[data-index]")
-    .forEach((img) => {
-      img.addEventListener("click", (e) => {
-        const index = Number(
-          (e.currentTarget as HTMLElement).getAttribute("data-index")
-        );
-        openProductModal(tiles[index]);
+    ?.querySelectorAll("button[data-id]")
+    .forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const el = e.currentTarget as HTMLElement;
+        const id = el.getAttribute("data-id");
+        const indexAttr = el.getAttribute("data-index");
+        const index =
+          typeof indexAttr === "string" ? Number(indexAttr) : undefined;
+        const tile = tiles.find((t) => t.id === id);
+        if (tile) applyTile(tile, index);
       });
     });
+
+  updateMobileSelection();
+}
+
+function updateMobileSelection() {
+  if (!listContainer || activeTileIndex < 0) return;
+
+  const buttons = Array.from(
+    listContainer.querySelectorAll("button[data-id]")
+  ) as HTMLElement[];
+
+  buttons.forEach((btn) => {
+    const id = btn.getAttribute("data-id");
+    if (id === activeTileId) {
+      btn.classList.add("border-black");
+      btn.classList.remove("border-gray-300");
+    } else {
+      btn.classList.remove("border-black");
+      btn.classList.add("border-gray-300");
+    }
+  });
+
+  const activeBtn = buttons.find(
+    (btn) => btn.getAttribute("data-id") === activeTileId
+  );
+  if (activeBtn) {
+    activeBtn.scrollIntoView({
+      behavior: "smooth",
+      inline: "center",
+      block: "nearest",
+    });
+  }
 }
 
 function bindDesktopEvents(tiles: TileProduct[]) {

@@ -30,7 +30,7 @@ export default function BathroomVisualiserPage() {
       {/* ===============================
           ENGINE DISPLAY
       =============================== */}
-      <div className="absolute inset-0 w-full h-full z-0 bg-gray-100">
+      <div className="absolute left-0 right-0 bottom-0 -top-24 md:top-0 w-full h-full z-0 bg-gray-100">
         <img
           id="bathroom-wall-layer"
           alt="Wall layer"
