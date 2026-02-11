@@ -326,6 +326,7 @@ window.addEventListener("resize", () => {
   bindSearch();
   createProductModal();
   bindApplyModeButtons();
+  updateApplyModeUI();
   bindChevronControls();
   bindCycleWindowHooks();
   emitLoaded();
@@ -656,6 +657,7 @@ function bindApplyModeButtons() {
     .forEach((btn) => {
       btn.addEventListener("click", () => {
         applyMode = btn.getAttribute("data-apply-mode") as ApplyMode;
+        updateApplyModeUI();
 
         // Re-apply active tile if exists
         if (activeTileId) {
@@ -663,6 +665,20 @@ function bindApplyModeButtons() {
           if (tile) applyTile(tile);
         }
       });
+    });
+}
+
+function updateApplyModeUI() {
+  document
+    .querySelectorAll("[data-apply-mode]")
+    .forEach((btn) => {
+      const mode = btn.getAttribute("data-apply-mode");
+      const isActive = mode === applyMode;
+      btn.classList.toggle("bg-black", isActive);
+      btn.classList.toggle("text-white", isActive);
+      btn.classList.toggle("border-black", isActive);
+      btn.classList.toggle("bg-white", !isActive);
+      btn.classList.toggle("text-gray-700", !isActive);
     });
 }
 
