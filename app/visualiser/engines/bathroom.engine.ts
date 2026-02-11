@@ -565,7 +565,9 @@ function renderMobileStrip(tiles: TileProduct[]) {
         const index =
           typeof indexAttr === "string" ? Number(indexAttr) : undefined;
         const tile = tiles.find((t) => t.id === id);
-        if (tile) applyTile(tile, index);
+        if (!tile) return;
+        applyTile(tile, index);
+        openProductModal(tile);
       });
     });
 
