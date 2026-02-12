@@ -66,6 +66,13 @@ export default function BathroomVisualiserPage() {
 
           <div className="text-xl text-gray-500">⋮</div>
         </div>
+        <div className="md:hidden px-4 py-2 border-b bg-[#f5f5f5] pointer-events-auto">
+          <input
+            id="bathroom-search-mobile-top"
+            placeholder="Search tiles..."
+            className="w-full px-4 py-2 text-sm rounded-full border"
+          />
+        </div>
 
         {/* ===============================
             BODY

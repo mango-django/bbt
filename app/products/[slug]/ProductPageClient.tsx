@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useCart } from "@/app/context/CartContext";
 import ProductGallery from "@/components/ProductGallery";
 import ProductCalculator from "@/components/ProductCalculator";
@@ -242,9 +243,12 @@ export default function ProductPageClient({ product, sortedImages }: any) {
               </table>
             </div>
 
-            <button className="mt-6 w-full py-3 bg-black text-white rounded-none">
+            <Link
+              href="/visualiser"
+              className="mt-6 w-full py-3 bg-black text-white rounded-none text-center"
+            >
               View In 3D Visualiser
-            </button>
+            </Link>
           </div>
         </div>
       </div>
