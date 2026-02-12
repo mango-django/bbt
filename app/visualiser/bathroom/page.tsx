@@ -5,7 +5,8 @@ import { initBathroom, destroyBathroom } from "../engines/bathroom.engine";
 
 export default function BathroomVisualiserPage() {
   const [drawerOpen, setDrawerOpen] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
 
   useEffect(() => {
     initBathroom();
@@ -13,9 +14,17 @@ export default function BathroomVisualiserPage() {
   }, []);
 
   useEffect(() => {
+    const handleProgress = (e: Event) => {
+      const detail = (e as CustomEvent<{ progress: number }>).detail;
+      if (!detail) return;
+      setLoadingProgress(detail.progress);
+      if (detail.progress >= 100) setIsLoading(false);
+    };
     const handleLoaded = () => setIsLoading(false);
+    window.addEventListener("bathroom-progress", handleProgress);
     window.addEventListener("bathroom-loaded", handleLoaded);
     return () => {
+      window.removeEventListener("bathroom-progress", handleProgress);
       window.removeEventListener("bathroom-loaded", handleLoaded);
     };
   }, []);
@@ -23,9 +32,14 @@ export default function BathroomVisualiserPage() {
   return (
     <div className="fixed inset-0 bg-[#f5f5f5] overflow-hidden">
 
-      {isLoading && (
-        <div className="fixed inset-0 z-50 bg-white" />
-      )}
+      <div className="fixed top-0 left-0 right-0 z-50 pointer-events-none">
+        <div
+          className={`h-1 bg-[#5c555b] transition-all duration-300 ${
+            isLoading ? "opacity-100" : "opacity-0"
+          }`}
+          style={{ width: `${loadingProgress}%` }}
+        />
+      </div>
 
       {/* ===============================
           ENGINE DISPLAY

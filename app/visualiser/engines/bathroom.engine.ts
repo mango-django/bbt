@@ -699,6 +699,7 @@ const BASE_WALL_SRC = "/visualiser/bathroom/base_wall.png";
 const BASE_FLOOR_SRC = "/visualiser/bathroom/base_floor.png";
 let scaleQueued = false;
 let cycleQueued = false;
+let preloadStarted = false;
 
 /* =====================================================
    INIT
@@ -748,7 +749,7 @@ window.addEventListener("resize", () => {
   updateApplyModeUI();
   bindChevronControls();
   bindCycleWindowHooks();
-  emitLoaded();
+  startPreload();
 }
 
 /* =====================================================
@@ -783,6 +784,48 @@ if (nameDisplay) {
 
   queueLayerScale();
   updateMobileSelection();
+}
+
+function startPreload() {
+  if (preloadStarted) return;
+  preloadStarted = true;
+
+  const urls = new Set<string>();
+  urls.add(BASE_WALL_SRC);
+  urls.add(BASE_FLOOR_SRC);
+  TILES.forEach((tile) => {
+    urls.add(tile.wallImage);
+    urls.add(tile.floorImage);
+    urls.add(tile.thumbnail);
+  });
+
+  const list = Array.from(urls);
+  if (!list.length) {
+    emitProgress(100);
+    emitLoaded();
+    return;
+  }
+
+  emitProgress(0);
+
+  let loaded = 0;
+  const total = list.length;
+
+  const handleDone = () => {
+    loaded += 1;
+    const progress = Math.round((loaded / total) * 100);
+    emitProgress(progress);
+    if (loaded >= total) {
+      emitLoaded();
+    }
+  };
+
+  list.forEach((src) => {
+    const img = new Image();
+    img.onload = handleDone;
+    img.onerror = handleDone;
+    img.src = src;
+  });
 }
 
 function queueLayerScale() {
@@ -1111,6 +1154,14 @@ function updateApplyModeUI() {
 
 function emitLoaded() {
   window.dispatchEvent(new Event("bathroom-loaded"));
+}
+
+function emitProgress(progress: number) {
+  window.dispatchEvent(
+    new CustomEvent<{ progress: number }>("bathroom-progress", {
+      detail: { progress },
+    })
+  );
 }
 
 export function destroyBathroom() {
