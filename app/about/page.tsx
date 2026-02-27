@@ -21,7 +21,7 @@ export default function AboutPage() {
       {/* Hero */}
       <div className="relative h-[55vh] min-h-[380px] overflow-hidden">
         <Image
-          src="/hero-home-bellos-bathroom.webp"
+          src="/hero-bathroom.webp"
           alt="Bellos showroom"
           fill
           className="object-cover"
