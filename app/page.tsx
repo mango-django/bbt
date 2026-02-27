@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 /* ---------------------------------------------
    TYPES
@@ -73,29 +74,72 @@ const quickCategoriesData = [
 ] as const;
 
 /* ---------------------------------------------
-   DATA
+   DATA — with featured-products support
 --------------------------------------------- */
-async function getFeaturedProducts(): Promise<ProductListItem[]> {
-  const supabase = await supabaseServer();
+async function getHomepageProducts(): Promise<ProductListItem[]> {
+  const admin = supabaseAdmin();
 
+  // Try to read featured product IDs from site_settings
+  try {
+    const { data: setting } = await admin
+      .from("site_settings")
+      .select("value")
+      .eq("key", "homepage_featured_product_ids")
+      .maybeSingle();
+
+    const ids: string[] = Array.isArray(setting?.value) ? setting.value : [];
+
+    if (ids.length > 0) {
+      const { data } = await admin
+        .from("products")
+        .select(
+          `
+          id,
+          title,
+          slug,
+          price_per_m2,
+          price_per_box,
+          product_images (
+            url:image_url,
+            sort_order
+          )
+        `
+        )
+        .in("id", ids)
+        .eq("status", "active");
+
+      if (data && data.length > 0) {
+        // Preserve admin-selected order
+        const sorted = ids
+          .map((id) => data.find((p) => p.id === id))
+          .filter(Boolean) as ProductListItem[];
+        return sorted.slice(0, 4);
+      }
+    }
+  } catch {
+    // site_settings table may not exist yet — fall through
+  }
+
+  // Fallback: latest 4 active products
+  const supabase = await supabaseServer();
   const { data } = await supabase
     .from("products")
     .select(
       `
-        id,
-        title,
-        slug,
-        price_per_m2,
-        price_per_box,
-        product_images (
-          url:image_url,
-          sort_order
-        )
-      `
+      id,
+      title,
+      slug,
+      price_per_m2,
+      price_per_box,
+      product_images (
+        url:image_url,
+        sort_order
+      )
+    `
     )
     .eq("status", "active")
     .order("created_at", { ascending: false })
-    .limit(2);
+    .limit(4);
 
   return data ?? [];
 }
@@ -106,170 +150,258 @@ export const revalidate = 0;
    HOME
 --------------------------------------------- */
 export default async function Home() {
-  const products = await getFeaturedProducts();
+  const products = await getHomepageProducts();
 
   return (
-    <main>
-      {/* ================= HERO ================= */}
-      <div className="bg-black text-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <section className="mt-4">
-            <div className="relative w-full h-[420px] sm:h-[520px] lg:h-[720px] overflow-hidden">
-              <Image
-                src="/hero-home-bellos-bathroom.webp"
-                alt="Luxury bathroom tiles by Bellos Bespoke Tiles"
-                fill
-                className="object-cover object-center"
-                sizes="100vw"
-              />
-              <div className="absolute inset-x-0 bottom-[30%] flex justify-center px-4">
-                <Link
-                  href={buildCategoryHref("floor", { application: "Floor" })}
-                  className="inline-flex items-center justify-center rounded-full border border-white/40 bg-white/20 px-7 py-3 text-sm font-medium text-white backdrop-blur-md transition hover:bg-white/30 sm:text-base"
-                >
-                  Shop Now
-                </Link>
-              </div>
-            </div>
-          </section>
+    <main className="bg-[#FAFAF8]">
+      {/* ====================================================
+          HERO
+      ==================================================== */}
+      <section className="relative w-full h-[100svh] min-h-[560px] max-h-[960px] overflow-hidden">
+        <Image
+          src="/hero-bathroom.webp"
+          alt="Luxury bathroom tiles by Bellos Bespoke Tiles"
+          fill
+          priority
+          className="object-cover object-center"
+          sizes="100vw"
+        />
+        {/* gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60" />
 
-          {/* ================= QUICK CATEGORIES ================= */}
-          <section className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* centred editorial text */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center px-6">
+          <p className="text-xs sm:text-sm tracking-[0.35em] uppercase mb-5 text-white/70">
+            Bespoke Tiles
+          </p>
+          <div className="w-12 h-px bg-white/40 mb-5" />
+          <h1 className="text-5xl sm:text-7xl lg:text-9xl font-thin tracking-widest leading-none uppercase">
+            Bellos
+          </h1>
+          <div className="w-12 h-px bg-white/40 mt-5 mb-8" />
+          <p className="text-sm sm:text-base text-white/80 max-w-sm">
+            Premium tiles for every space, expertly curated
+          </p>
+          <Link
+            href="/tiles"
+            className="mt-8 inline-flex items-center gap-2 border border-white/50 bg-white/10 backdrop-blur-sm px-8 py-3 text-sm tracking-widest uppercase hover:bg-white/20 transition-all duration-300"
+          >
+            Shop Now
+          </Link>
+        </div>
+
+        {/* scroll hint */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/50">
+          <span className="text-[10px] tracking-[0.3em] uppercase">Scroll</span>
+          <div className="w-px h-8 bg-white/30" />
+        </div>
+      </section>
+
+      {/* ====================================================
+          CATEGORIES — editorial tile grid
+      ==================================================== */}
+      <section className="max-w-[1400px] mx-auto px-4 sm:px-8 mt-16 sm:mt-24">
+        <div className="flex items-center gap-4 mb-10">
+          <div className="w-8 h-px bg-[#9A7A5E]" />
+          <p className="text-[11px] tracking-[0.35em] uppercase text-[#9A7A5E]">
+            Explore Collections
+          </p>
+        </div>
+
+        {/* Bento grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 grid-rows-2 gap-3 h-[520px] sm:h-[600px]">
+          {/* Wall — large left tile, spans 2 cols × 2 rows */}
+          <Link
+            href={buildCategoryHref("wall", { application: "Wall" })}
+            className="group relative col-span-2 row-span-2 overflow-hidden"
+          >
+            <Image
+              src="/homepage-lounge.webp"
+              alt="Wall Tiles"
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-105"
+              sizes="(max-width: 768px) 100vw, 33vw"
+            />
+            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/35 transition-colors duration-500" />
+            <div className="absolute inset-0 flex flex-col justify-end p-6">
+              <span className="text-[10px] tracking-[0.3em] uppercase text-white/60 mb-1">
+                Collection
+              </span>
+              <span className="text-white text-2xl sm:text-3xl font-light tracking-wider">
+                Wall
+              </span>
+            </div>
+          </Link>
+
+          {/* 4 small tiles — right side, 4 cols × 1 row each */}
+          {quickCategoriesData.map((cat) => (
             <Link
-              href={buildCategoryHref("wall", { application: "Wall" })}
-              className="relative h-[260px] sm:h-[360px] md:h-[400px] overflow-hidden"
+              key={cat.label}
+              href={buildCategoryHref(cat.slug, cat.filters)}
+              className="group relative col-span-1 overflow-hidden"
             >
               <Image
-                src="/homepage-lounge.webp"
-                alt="Wall Tiles"
+                src={cat.image}
+                alt={cat.label}
                 fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
+                sizes="(max-width: 768px) 50vw, 17vw"
               />
-              <div className="absolute bottom-4 left-4 bg-white/80 px-4 py-2 text-black text-sm sm:text-base">
-                Wall
+              <div className="absolute inset-0 bg-black/25 group-hover:bg-black/45 transition-colors duration-500" />
+              <div className="absolute inset-0 flex items-end p-4">
+                <span className="text-white text-sm sm:text-base font-light tracking-wide">
+                  {cat.label}
+                </span>
               </div>
             </Link>
-
-            <div className="grid grid-cols-2 gap-4">
-              {quickCategoriesData.map((cat) => (
-                <Link
-                  key={cat.label}
-                  href={buildCategoryHref(cat.slug, cat.filters)}
-                  className="relative h-[140px] sm:h-[180px] overflow-hidden"
-                >
-                  <Image
-                    src={cat.image}
-                    alt={cat.label}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                  />
-                  <div className="absolute bottom-3 left-3 bg-white/80 px-3 py-1 text-xs sm:text-sm text-black">
-                    {cat.label}
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </section>
-
-          {/* ================= INTRO ================= */}
-          <section className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div className="relative w-full h-[260px] sm:h-[340px] overflow-hidden">
-              <Image
-                src="/bellos-intro-logo.webp"
-                alt="Bellos Logo"
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 50vw"
-              />
-            </div>
-
-            <div className="bg-[#1c1c1c] p-6 sm:p-8 text-white">
-              <h2 className="text-2xl sm:text-3xl font-bold mb-4">
-                Premium Tiles for Every Space
-              </h2>
-              <p className="text-sm sm:text-base text-white/80 leading-relaxed">
-                At Bellos, we provide high-quality porcelain, ceramic, mosaic and
-                outdoor tiles. Explore our collections or try our 3D Visualiser
-                to see your space come to life.
-              </p>
-
-              <Link
-                href="/about"
-                className="inline-block mt-6 bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg text-sm sm:text-base"
-              >
-                Learn More
-              </Link>
-            </div>
-          </section>
+          ))}
         </div>
-      </div>
+      </section>
 
-      {/* ================= FEATURED ================= */}
-      <div className="bg-white text-black">
-        <div className="max-w-7xl mx-auto px-4">
-          <section className="mt-20">
-            <h2 className="text-xl sm:text-2xl font-medium mb-6">
+      {/* ====================================================
+          LATEST PRODUCTS — 4-column premium grid
+      ==================================================== */}
+      <section className="max-w-[1400px] mx-auto px-4 sm:px-8 mt-20 sm:mt-28">
+        <div className="flex items-center justify-between mb-10">
+          <div className="flex items-center gap-4">
+            <div className="w-8 h-px bg-[#9A7A5E]" />
+            <p className="text-[11px] tracking-[0.35em] uppercase text-[#9A7A5E]">
               Latest Products
-            </h2>
+            </p>
+          </div>
+          <Link
+            href="/tiles"
+            className="text-xs tracking-widest uppercase text-[#1A1A1A] border-b border-[#1A1A1A]/30 pb-0.5 hover:border-[#1A1A1A] transition-colors"
+          >
+            View All
+          </Link>
+        </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {products.map((product) => {
-                const img =
-                  product.product_images?.[0]?.url ?? "/hero-bathroom.webp";
-                const price =
-                  formatPrice(product.price_per_m2) ??
-                  formatPrice(product.price_per_box) ??
-                  "Contact for pricing";
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          {products.map((product) => {
+            const sorted = [...(product.product_images ?? [])].sort(
+              (a, b) => (a.sort_order ?? 99) - (b.sort_order ?? 99)
+            );
+            const img = sorted[0]?.url ?? "/hero-bathroom.webp";
+            const price =
+              formatPrice(product.price_per_m2) ??
+              formatPrice(product.price_per_box) ??
+              "Contact for pricing";
 
-                return (
-                  <Link
-                    key={product.id}
-                    href={`/products/${product.slug ?? product.id}`}
-                    className="border p-4 hover:shadow-lg transition"
-                  >
-                    <div className="relative w-full pb-[70%] bg-neutral-100">
-                      <Image src={img} alt="" fill className="object-cover" />
-                    </div>
-                    <div className="mt-4">
-                      <p className="font-semibold">{product.title}</p>
-                      <p className="text-sm text-gray-600">{price}</p>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </section>
+            return (
+              <Link
+                key={product.id}
+                href={`/products/${product.slug ?? product.id}`}
+                className="group block"
+              >
+                {/* image container */}
+                <div className="relative w-full overflow-hidden bg-[#EEECE9]" style={{ aspectRatio: "4/5" }}>
+                  <Image
+                    src={img}
+                    alt={product.title ?? ""}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    sizes="(max-width: 640px) 50vw, 25vw"
+                  />
+                </div>
 
-          {/* ================= VISUALISER CTA ================= */}
-          <section className="mt-20 relative h[240px] sm:h-[300px] overflow-hidden">
+                {/* details */}
+                <div className="mt-3 px-0.5">
+                  <p className="text-[#1A1A1A] text-sm sm:text-base font-light leading-snug tracking-wide">
+                    {product.title}
+                  </p>
+                  <p className="mt-1 text-xs sm:text-sm text-[#9A7A5E] tracking-wide">
+                    {price}
+                  </p>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ====================================================
+          BRAND STORY
+      ==================================================== */}
+      <section className="max-w-[1400px] mx-auto px-4 sm:px-8 mt-20 sm:mt-28">
+        <div className="grid grid-cols-1 md:grid-cols-2">
+          {/* image */}
+          <div className="relative h-[320px] sm:h-[440px] overflow-hidden">
             <Image
-              src="/visualiser-banner.webp"
-              alt="Visualiser"
+              src="/bellos-intro-logo.webp"
+              alt="Bellos Brand"
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 50vw"
             />
-            <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center text-white text-center px-4">
-              <h2 className="text-2xl sm:text-3xl font-bold mb-3">
-                Try Tiles in 3D
-              </h2>
-              <p className="text-sm sm:text-lg mb-5">
-                Visualise tiles in real room settings
-              </p>
-              <Link
-                href="/visualiser"
-                className="bg-white text-black px-6 py-3 rounded-lg font-semibold"
-              >
-                Open Visualiser
-              </Link>
-            </div>
-          </section>
+          </div>
 
-          <div className="h-20" />
+          {/* text */}
+          <div className="bg-[#151515] text-white flex flex-col justify-center px-10 py-14 sm:px-16">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-8 h-px bg-[#9A7A5E]" />
+              <p className="text-[11px] tracking-[0.35em] uppercase text-[#9A7A5E]">
+                Our Story
+              </p>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-thin tracking-wider leading-tight mb-6">
+              Premium Tiles
+              <br />
+              <span className="italic text-white/60">for Every Space</span>
+            </h2>
+            <p className="text-sm sm:text-base text-white/60 leading-relaxed max-w-sm">
+              At Bellos, we provide high-quality porcelain, ceramic, mosaic and
+              outdoor tiles — carefully curated for discerning homes and
+              commercial spaces. Explore our collections or try our 3D
+              Visualiser to see your space come to life.
+            </p>
+            <Link
+              href="/about"
+              className="mt-10 inline-flex items-center gap-3 text-xs tracking-widest uppercase text-white/80 hover:text-white transition-colors group w-fit"
+            >
+              Learn More
+              <span className="w-6 h-px bg-white/40 group-hover:w-10 transition-all duration-300" />
+            </Link>
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* ====================================================
+          VISUALISER CTA
+      ==================================================== */}
+      <section className="max-w-[1400px] mx-auto px-4 sm:px-8 mt-20 sm:mt-28 mb-20 sm:mb-28">
+        <div className="relative overflow-hidden h-[300px] sm:h-[420px]">
+          <Image
+            src="/visualiser-banner.webp"
+            alt="Try our 3D Visualiser"
+            fill
+            className="object-cover"
+            sizes="100vw"
+          />
+          <div className="absolute inset-0 bg-black/50" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-white text-center px-6">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-8 h-px bg-white/40" />
+              <p className="text-[11px] tracking-[0.35em] uppercase text-white/60">
+                Interactive Tool
+              </p>
+              <div className="w-8 h-px bg-white/40" />
+            </div>
+            <h2 className="text-3xl sm:text-5xl font-thin tracking-widest uppercase mb-4">
+              Try Tiles in 3D
+            </h2>
+            <p className="text-sm sm:text-base text-white/70 mb-8 max-w-sm">
+              Visualise our tiles in real room settings before you buy
+            </p>
+            <Link
+              href="/visualiser"
+              className="border border-white/60 bg-white/10 backdrop-blur-sm px-10 py-3 text-xs tracking-widest uppercase hover:bg-white/20 transition-all duration-300"
+            >
+              Open Visualiser
+            </Link>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

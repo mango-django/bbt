@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import FiltersSidebar from "./FiltersSidebar";
 import FiltersDrawer from "./FiltersDrawer";
@@ -84,74 +85,87 @@ export default async function CategoryPage({
   /* PRICE RANGE */
   const minPrice = Number(search.minPrice ?? 0);
   const maxPrice = Number(search.maxPrice ?? 99999);
-
   query = query.gte("price_per_m2", minPrice).lte("price_per_m2", maxPrice);
 
   /* SORTING */
   const sort = search.sort ?? "default";
-
-  if (sort === "price_asc")
-    query = query.order("price_per_m2", { ascending: true });
-
-  if (sort === "price_desc")
-    query = query.order("price_per_m2", { ascending: false });
-
-  if (sort === "newest")
-    query = query.order("created_at", { ascending: false });
+  if (sort === "price_asc") query = query.order("price_per_m2", { ascending: true });
+  if (sort === "price_desc") query = query.order("price_per_m2", { ascending: false });
+  if (sort === "newest") query = query.order("created_at", { ascending: false });
 
   query = query.order("sort_order", {
     foreignTable: "product_images",
     ascending: true,
   });
 
-  /* GRID VIEW */
+  /* GRID */
   const gridParam = search.grid ?? "3";
   const gridCols =
-    gridParam === "2"
-      ? "lg:grid-cols-2"
-      : gridParam === "4"
-      ? "lg:grid-cols-4"
-      : "lg:grid-cols-3";
+    gridParam === "2" ? "lg:grid-cols-2"
+    : gridParam === "4" ? "lg:grid-cols-4"
+    : "lg:grid-cols-3";
 
   /* SHOW PER PAGE */
   const showOptions = new Set([12, 24, 36, 48]);
   const showCount = Number(search.show ?? 12);
   query = query.limit(showOptions.has(showCount) ? showCount : 12);
 
-  /* FETCH PRODUCTS */
   const { data: products } = await query;
+  const heading = category?.name ?? slug.replace(/-/g, " ");
 
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="min-h-screen bg-[#FAFAF8]">
 
-      {/* MOBILE FILTER DRAWER */}
-      <FiltersDrawer categorySlug={slug} />
+      {/* ---- Category breadcrumb banner ---- */}
+      <div className="border-b border-[#E8E5E0] bg-white">
+        <div className="max-w-[1400px] mx-auto px-6 sm:px-8 py-4">
+          <nav className="flex items-center gap-2 text-[10px] tracking-[0.25em] uppercase">
+            <Link href="/tiles" className="text-[#9A7A5E] hover:text-[#7A5E44] transition-colors">
+              All Tiles
+            </Link>
+            <span className="text-[#D4CFC8]">/</span>
+            <span className="text-[#1A1A1A] capitalize">{heading}</span>
+          </nav>
+        </div>
+      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-10">
+      {/* ---- Main layout ---- */}
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-8 py-10">
 
-        {/* DESKTOP FILTER SIDEBAR */}
-        <aside className="hidden lg:block">
-          <FiltersSidebar categorySlug={slug} />
-        </aside>
+        {/* Mobile drawer */}
+        <FiltersDrawer categorySlug={slug} />
 
-        {/* MAIN CONTENT */}
-        <main className="bg-white text-[#2d2d2d] p-6 shadow-sm">
-          <CategoryTopBar
-            count={products?.length ?? 0}
-            heading={category?.name || slug.replace(/-/g, " ")}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-12">
 
-          {products && products.length > 0 ? (
-            <div className={`mt-8 grid grid-cols-1 sm:grid-cols-2 ${gridCols} gap-8`}>
-              {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
+          {/* Desktop sidebar — sticky */}
+          <aside className="hidden lg:block">
+            <div className="sticky top-6">
+              <FiltersSidebar categorySlug={slug} />
             </div>
-          ) : (
-            <p className="mt-8 text-gray-500">No products found.</p>
-          )}
-        </main>
+          </aside>
 
+          {/* Main content */}
+          <section>
+            <CategoryTopBar
+              count={products?.length ?? 0}
+              heading={heading}
+            />
+
+            {products && products.length > 0 ? (
+              <div className={`mt-8 grid grid-cols-1 sm:grid-cols-2 ${gridCols} gap-x-6 gap-y-10`}>
+                {products.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            ) : (
+              <div className="mt-16 text-center">
+                <p className="text-[11px] tracking-[0.3em] uppercase text-[#9A7A5E] mb-2">No results</p>
+                <p className="text-sm text-[#6B6B6B]">Try adjusting or clearing your filters.</p>
+              </div>
+            )}
+          </section>
+
+        </div>
       </div>
     </div>
   );

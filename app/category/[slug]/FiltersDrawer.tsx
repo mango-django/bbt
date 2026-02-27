@@ -4,7 +4,13 @@ import { useState, useEffect } from "react";
 import { FiChevronLeft, FiChevronRight, FiMenu } from "react-icons/fi";
 import FiltersSidebar from "./FiltersSidebar";
 
-export default function FiltersDrawer({ categorySlug }: { categorySlug: string }) {
+export default function FiltersDrawer({
+  categorySlug,
+  basePath,
+}: {
+  categorySlug: string;
+  basePath?: string;
+}) {
   const [open, setOpen] = useState(false);
 
   // Lock body scroll when open
@@ -60,7 +66,7 @@ export default function FiltersDrawer({ categorySlug }: { categorySlug: string }
 
         {/* Filters */}
         <div className="overflow-y-auto h-full p-4 pb-24">
-          <FiltersSidebar categorySlug={categorySlug} />
+          <FiltersSidebar categorySlug={categorySlug} basePath={basePath} />
         </div>
       </aside>
     </>

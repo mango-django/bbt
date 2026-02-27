@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { Suspense } from "react";
 import { supabaseServer } from "@/lib/supabase/server";
 import InstallationProductCard from "@/app/installation-products/components/InstallationProductCard";
 import InstallationFilters from "@/app/installation-products/components/InstallationFilters";
@@ -30,10 +32,7 @@ async function fetchInstallationProducts(params: Record<string, string | string[
     )
     .ilike("status", "active");
 
-  if (productType) {
-    query = query.eq("product_type", productType);
-  }
-
+  if (productType) query = query.eq("product_type", productType);
   if (colour) query = query.eq("colour", colour);
   if (searchTerm) query = query.ilike("name", `%${searchTerm}%`);
 
@@ -64,35 +63,66 @@ export default async function InstallationProductsPage({
   const products = await fetchInstallationProducts(params);
 
   return (
-    <div className="bg-white text-[#1f1f1f]">
-      <div className="max-w-7xl mx-auto px-4 py-10 space-y-8">
-      <div className="flex flex-col gap-4 border-b pb-6">
-        <div>
-          <p className="text-sm uppercase tracking-widest text-gray-500">Installation Essentials</p>
-          <h1 className="text-3xl font-bold text-[#1f1f1f]">Installation Products</h1>
-          <p className="text-gray-600 mt-2 max-w-3xl">
-            Adhesives, grouts, sealers, trims, and tools curated to support your installations.
-          </p>
-        </div>
+    <div className="min-h-screen bg-[#FAFAF8]">
 
-        <div className="flex flex-wrap gap-4 items-center">
-          <InstallationSearch />
-          <InstallationFilters />
+      {/* Breadcrumb banner */}
+      <div className="border-b border-[#E8E5E0] bg-white">
+        <div className="max-w-[1400px] mx-auto px-6 sm:px-8 py-4">
+          <nav className="flex items-center gap-2 text-[10px] tracking-[0.25em] uppercase">
+            <Link href="/" className="text-[#9A7A5E] hover:text-[#7A5E44] transition-colors">
+              Home
+            </Link>
+            <span className="text-[#D4CFC8]">/</span>
+            <span className="text-[#1A1A1A]">Installation Products</span>
+          </nav>
         </div>
       </div>
 
-      {products.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-gray-300 p-12 text-center text-gray-500">
-          No installation products found for these filters.
+      {/* Main content */}
+      <div className="max-w-[1400px] mx-auto px-6 sm:px-8 py-10">
+
+        {/* Top bar — heading + controls */}
+        <div className="flex flex-wrap justify-between items-end gap-6 pb-7 border-b border-[#E8E5E0]">
+
+          {/* Left — heading + count */}
+          <div>
+            <p className="text-[10px] tracking-[0.25em] uppercase text-[#9A7A5E] mb-1">
+              Installation Essentials
+            </p>
+            <h1 className="text-2xl sm:text-3xl font-light tracking-wider text-[#1A1A1A]">
+              Installation Products
+            </h1>
+            <p className="text-[10px] tracking-[0.25em] uppercase text-[#9A7A5E] mt-1.5">
+              {products.length} product{products.length !== 1 ? "s" : ""}
+            </p>
+          </div>
+
+          {/* Right — search + filters */}
+          <div className="flex flex-wrap items-end gap-6">
+            <Suspense>
+              <InstallationSearch />
+            </Suspense>
+            <Suspense>
+              <InstallationFilters />
+            </Suspense>
+          </div>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {products.map((product) => (
-            <InstallationProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      )}
-    </div>
+
+        {/* Grid or empty state */}
+        {products.length === 0 ? (
+          <div className="mt-16 text-center">
+            <p className="text-[11px] tracking-[0.3em] uppercase text-[#9A7A5E] mb-2">No results</p>
+            <p className="text-sm text-[#6B6B6B]">Try adjusting or clearing your filters.</p>
+          </div>
+        ) : (
+          <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
+            {products.map((product) => (
+              <InstallationProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }

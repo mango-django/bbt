@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { supabaseServerAuth } from "@/lib/supabase/server-auth";
 import LogoutButton from "@/components/account/LogoutButton";
 import AdminClientShell from "@/components/admin/AdminClientShell";
-import { Analytics } from "@vercel/analytics/next"
 
 export default async function AdminLayout({
   children,
@@ -44,6 +43,9 @@ export default async function AdminLayout({
         <nav className="flex flex-col gap-4 text-white/80">
           <Link href="/admin">Home</Link>
           <Link href="/admin/products">Products</Link>
+          <Link href="/admin/featured-products" className="text-yellow-300/90 hover:text-yellow-200">
+            Featured Products
+          </Link>
           <Link href="/admin/wood-planks">Wood Planks</Link>
           <Link href="/admin/installation-products">
             Installation Products

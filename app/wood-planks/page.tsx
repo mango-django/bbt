@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import WoodPlankCard from "./WoodPlankCard";
 
@@ -15,31 +16,61 @@ export default async function WoodPlanksPage() {
   if (error) {
     console.error(error);
     return (
-      <div className="max-w-7xl mx-auto p-10">
-        <p className="text-red-600">Failed to load wood planks.</p>
+      <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-[11px] tracking-[0.3em] uppercase text-[#9A7A5E] mb-2">Error</p>
+          <p className="text-sm text-[#6B6B6B]">Failed to load wood planks.</p>
+        </div>
       </div>
     );
   }
 
-    return (
-    <div className="max-w-7xl mx-auto p-10">
-      <div className="mb-10">
-        <h1 className="text-3xl font-bold mb-3">Wood Planks</h1>
-        <p className="text-gray-600 max-w-2xl">
-          Premium wood plank flooring sold per pack. Each product shows pack
-          coverage so you can calculate exactly what you need.
-        </p>
+  return (
+    <div className="min-h-screen bg-[#FAFAF8]">
+
+      {/* Breadcrumb */}
+      <div className="border-b border-[#E8E5E0] bg-white">
+        <div className="max-w-[1400px] mx-auto px-6 sm:px-8 py-4">
+          <nav className="flex items-center gap-2 text-[10px] tracking-[0.25em] uppercase">
+            <Link href="/" className="text-[#9A7A5E] hover:text-[#7A5E44] transition-colors">
+              Home
+            </Link>
+            <span className="text-[#D4CFC8]">/</span>
+            <span className="text-[#1A1A1A]">Wood Planks</span>
+          </nav>
+        </div>
       </div>
 
-      {planks && planks.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-          {planks.map((plank) => (
-            <WoodPlankCard key={plank.id} plank={plank} />
-          ))}
+      {/* Main content */}
+      <div className="max-w-[1400px] mx-auto px-6 sm:px-8 py-10">
+
+        {/* Top bar */}
+        <div className="pb-7 border-b border-[#E8E5E0] mb-8">
+          <p className="text-[10px] tracking-[0.25em] uppercase text-[#9A7A5E] mb-1">
+            Flooring
+          </p>
+          <h1 className="text-2xl sm:text-3xl font-light tracking-wider text-[#1A1A1A]">
+            Wood Planks
+          </h1>
+          <p className="text-[10px] tracking-[0.25em] uppercase text-[#9A7A5E] mt-1.5">
+            {planks?.length ?? 0} product{(planks?.length ?? 0) !== 1 ? "s" : ""}
+          </p>
         </div>
-      ) : (
-        <p className="text-gray-500">No wood planks available.</p>
-      )}
+
+        {planks && planks.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
+            {planks.map((plank) => (
+              <WoodPlankCard key={plank.id} plank={plank} />
+            ))}
+          </div>
+        ) : (
+          <div className="mt-16 text-center">
+            <p className="text-[11px] tracking-[0.3em] uppercase text-[#9A7A5E] mb-2">No results</p>
+            <p className="text-sm text-[#6B6B6B]">No wood planks available at this time.</p>
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }

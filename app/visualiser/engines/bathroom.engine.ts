@@ -956,25 +956,25 @@ if (!listContainer) return;
   tiles.forEach((tile, index) => {
     const card = document.createElement("div");
     card.className =
-      "p-3 border rounded-lg bg-white hover:shadow-md transition";
+      "flex gap-3 px-4 py-3 border-b border-[#E8E5E0] hover:bg-white transition-colors";
 
     card.innerHTML = `
-      <div class="flex gap-3">
-        <img src="${tile.thumbnail}" class="w-16 h-16 object-cover rounded" />
-        <div class="flex-1">
-          <div class="font-semibold text-sm">${tile.name}</div>
-          <div class="text-xs text-gray-500">${tile.sizes.join(", ")}</div>
-          <div class="text-xs text-gray-500">${tile.finishes.join(", ")}</div>
-          <div class="flex justify-between items-center mt-2">
-            <button class="text-xs text-black underline"
-              data-apply="${index}">
-              Apply
-            </button>
-            <button class="text-xs text-gray-500 underline"
-              data-info="${index}">
-              More product info
-            </button>
-          </div>
+      <div class="w-14 h-14 shrink-0 bg-[#EEECE9] overflow-hidden">
+        <img src="${tile.thumbnail}" class="w-full h-full object-cover" />
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="text-xs font-light text-[#1A1A1A] tracking-wide leading-snug truncate">${tile.name}</div>
+        <div class="text-[10px] tracking-[0.15em] uppercase text-[#9A7A5E] mt-1">${tile.sizes.join(" · ")}</div>
+        <div class="text-[10px] tracking-[0.15em] uppercase text-[#9A7A5E]">${tile.finishes.join(", ")}</div>
+        <div class="flex items-center gap-4 mt-2">
+          <button class="text-[10px] tracking-[0.2em] uppercase text-[#1A1A1A] border-b border-[#1A1A1A] pb-px hover:text-[#9A7A5E] hover:border-[#9A7A5E] transition-colors"
+            data-apply="${index}">
+            Apply
+          </button>
+          <button class="text-[10px] tracking-[0.2em] uppercase text-[#9A7A5E] border-b border-[#9A7A5E] pb-px hover:text-[#7A5E44] hover:border-[#7A5E44] transition-colors"
+            data-info="${index}">
+            More Info
+          </button>
         </div>
       </div>
     `;
@@ -989,7 +989,7 @@ function renderMobileStrip(tiles: TileProduct[]) {
   if (!listContainer) return;
 
   listContainer.innerHTML = `
-    <div class="flex gap-4 overflow-x-auto pb-4">
+    <div class="flex gap-2 overflow-x-auto pb-2">
       ${tiles
         .map(
           (tile, index) => `
@@ -997,14 +997,14 @@ function renderMobileStrip(tiles: TileProduct[]) {
           type="button"
           data-id="${tile.id}"
           data-index="${index}"
-          class="shrink-0 rounded-lg border p-1 bg-white ${
-            tile.id === activeTileId ? "border-black" : "border-gray-300"
+          class="shrink-0 border-2 bg-[#EEECE9] overflow-hidden transition-colors ${
+            tile.id === activeTileId ? "border-[#9A7A5E]" : "border-transparent"
           }"
         >
           <img
             src="${tile.thumbnail}"
             alt="${tile.name}"
-            class="w-20 h-20 object-cover rounded"
+            class="w-16 h-16 object-cover"
           />
         </button>
       `
@@ -1042,11 +1042,11 @@ function updateMobileSelection() {
   buttons.forEach((btn) => {
     const id = btn.getAttribute("data-id");
     if (id === activeTileId) {
-      btn.classList.add("border-black");
-      btn.classList.remove("border-gray-300");
+      btn.classList.add("border-[#9A7A5E]");
+      btn.classList.remove("border-transparent");
     } else {
-      btn.classList.remove("border-black");
-      btn.classList.add("border-gray-300");
+      btn.classList.remove("border-[#9A7A5E]");
+      btn.classList.add("border-transparent");
     }
   });
 
@@ -1136,11 +1136,12 @@ function updateApplyModeUI() {
     .forEach((btn) => {
       const mode = btn.getAttribute("data-apply-mode");
       const isActive = mode === applyMode;
-      btn.classList.toggle("bg-black", isActive);
+      btn.classList.toggle("bg-[#1A1A1A]", isActive);
       btn.classList.toggle("text-white", isActive);
-      btn.classList.toggle("border-black", isActive);
+      btn.classList.toggle("border-[#1A1A1A]", isActive);
       btn.classList.toggle("bg-white", !isActive);
-      btn.classList.toggle("text-gray-700", !isActive);
+      btn.classList.toggle("text-[#1A1A1A]", !isActive);
+      btn.classList.toggle("border-[#D4CFC8]", !isActive);
     });
 }
 
@@ -1181,12 +1182,15 @@ function createProductModal() {
   productModal.style.display = "none";
 
   productModal.innerHTML = `
-    <div class="bg-white w-full max-w-2xl rounded-xl shadow-xl overflow-hidden">
-      <div class="flex justify-between items-center p-4 border-b">
-        <h2 class="text-lg font-semibold">Product Details</h2>
-        <button id="bathroom-modal-close" class="text-gray-500 text-xl">&times;</button>
+    <div class="bg-white w-full max-w-md mx-4 shadow-2xl overflow-hidden">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-[#E8E5E0]">
+        <div class="flex items-center gap-3">
+          <p class="text-[10px] tracking-[0.25em] uppercase text-[#9A7A5E] font-medium shrink-0">Product Details</p>
+          <div class="w-12 h-px bg-[#E8E5E0]"></div>
+        </div>
+        <button id="bathroom-modal-close" class="w-7 h-7 flex items-center justify-center text-[#9A7A5E] hover:text-[#1A1A1A] transition-colors text-xl leading-none">&times;</button>
       </div>
-      <div id="bathroom-modal-content" class="p-6 space-y-4 overflow-y-auto max-h-[70vh]"></div>
+      <div id="bathroom-modal-content" class="overflow-y-auto max-h-[80vh]"></div>
     </div>
   `;
 
@@ -1211,28 +1215,51 @@ function openProductModal(tile: TileProduct) {
   productModal!.style.display = "flex";
 
   productModalContent.innerHTML = `
-    <div class="flex gap-6 flex-col md:flex-row">
-      <img src="${tile.thumbnail}" class="w-full md:w-48 rounded-lg border" />
-      <div class="space-y-2">
-        <div class="text-xl font-semibold">${tile.name}</div>
-        <div class="text-sm text-gray-500">${tile.brand}</div>
-        <div class="text-sm"><strong>SKU:</strong> ${tile.sku}</div>
-        <div class="text-sm"><strong>Material:</strong> ${tile.material}</div>
-        <div class="text-sm"><strong>Suitability:</strong> ${tile.suitability}</div>
-        <div class="text-sm"><strong>Colour:</strong> ${tile.colour.join(", ")}</div>
-        <div class="text-sm"><strong>Finish:</strong> ${tile.finishes.join(", ")}</div>
-        <div class="text-sm"><strong>Sizes:</strong> ${tile.sizes.join(", ")}</div>
+    <div class="flex gap-4 px-6 py-5 border-b border-[#E8E5E0]">
+      <div class="w-20 h-20 shrink-0 bg-[#EEECE9] overflow-hidden">
+        <img src="${tile.thumbnail}" class="w-full h-full object-cover" />
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-light text-[#1A1A1A] tracking-wide leading-snug mb-1">${tile.name}</p>
+        <p class="text-[10px] tracking-[0.2em] uppercase text-[#9A7A5E]">${tile.brand}</p>
       </div>
     </div>
 
-    <div class="flex justify-end gap-3 pt-6 border-t">
+    <div class="px-6 py-1 border-b border-[#E8E5E0]">
+      <div class="grid grid-cols-5 gap-3 py-2.5 border-b border-[#E8E5E0]">
+        <p class="col-span-2 text-[10px] tracking-[0.2em] uppercase text-[#9A7A5E]">SKU</p>
+        <p class="col-span-3 text-xs text-[#1A1A1A] font-light">${tile.sku}</p>
+      </div>
+      <div class="grid grid-cols-5 gap-3 py-2.5 border-b border-[#E8E5E0]">
+        <p class="col-span-2 text-[10px] tracking-[0.2em] uppercase text-[#9A7A5E]">Material</p>
+        <p class="col-span-3 text-xs text-[#1A1A1A] font-light">${tile.material}</p>
+      </div>
+      <div class="grid grid-cols-5 gap-3 py-2.5 border-b border-[#E8E5E0]">
+        <p class="col-span-2 text-[10px] tracking-[0.2em] uppercase text-[#9A7A5E]">Suitability</p>
+        <p class="col-span-3 text-xs text-[#1A1A1A] font-light">${tile.suitability}</p>
+      </div>
+      <div class="grid grid-cols-5 gap-3 py-2.5 border-b border-[#E8E5E0]">
+        <p class="col-span-2 text-[10px] tracking-[0.2em] uppercase text-[#9A7A5E]">Colour</p>
+        <p class="col-span-3 text-xs text-[#1A1A1A] font-light">${tile.colour.join(", ")}</p>
+      </div>
+      <div class="grid grid-cols-5 gap-3 py-2.5 border-b border-[#E8E5E0]">
+        <p class="col-span-2 text-[10px] tracking-[0.2em] uppercase text-[#9A7A5E]">Finish</p>
+        <p class="col-span-3 text-xs text-[#1A1A1A] font-light">${tile.finishes.join(", ")}</p>
+      </div>
+      <div class="grid grid-cols-5 gap-3 py-2.5">
+        <p class="col-span-2 text-[10px] tracking-[0.2em] uppercase text-[#9A7A5E]">Sizes</p>
+        <p class="col-span-3 text-xs text-[#1A1A1A] font-light">${tile.sizes.join(", ")}</p>
+      </div>
+    </div>
+
+    <div class="flex gap-3 px-6 py-5">
       <button id="bathroom-modal-back"
-        class="px-4 py-2 border rounded-lg text-sm">
+        class="flex-1 py-3 border border-[#D4CFC8] text-[10px] tracking-[0.2em] uppercase text-[#1A1A1A] hover:border-[#9A7A5E] hover:text-[#9A7A5E] transition-colors">
         Back
       </button>
       <a href="${tile.productUrl}"
-        class="px-4 py-2 bg-black text-white rounded-lg text-sm">
-        Go to product page
+        class="flex-1 py-3 bg-[#1A1A1A] text-white text-[10px] tracking-[0.2em] uppercase text-center hover:bg-[#2A2A2A] transition-colors">
+        View Product
       </a>
     </div>
   `;

@@ -30,21 +30,20 @@ export default function BathroomVisualiserPage() {
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-[#f5f5f5] overflow-hidden">
+    <div className="fixed inset-0 bg-[#EEECE9] overflow-hidden">
 
+      {/* Loading progress bar */}
       <div className="fixed top-0 left-0 right-0 z-50 pointer-events-none">
         <div
-          className={`h-1 bg-[#5c555b] transition-all duration-300 ${
+          className={`h-0.5 bg-[#9A7A5E] transition-all duration-300 ${
             isLoading ? "opacity-100" : "opacity-0"
           }`}
           style={{ width: `${loadingProgress}%` }}
         />
       </div>
 
-      {/* ===============================
-          ENGINE DISPLAY
-      =============================== */}
-      <div className="absolute left-0 right-0 bottom-0 -top-24 md:top-0 w-full h-full z-0 bg-gray-100">
+      {/* Engine layers */}
+      <div className="absolute left-0 right-0 bottom-0 -top-24 md:top-0 w-full h-full z-0">
         <img
           id="bathroom-wall-layer"
           alt="Wall layer"
@@ -57,47 +56,58 @@ export default function BathroomVisualiserPage() {
         />
       </div>
 
-      {/* ===============================
-          MAIN LAYOUT
-      =============================== */}
+      {/* Main layout */}
       <div className="relative z-20 flex h-full flex-col pointer-events-none">
 
-        {/* ===== Top Bar ===== */}
-        <div className="h-16 flex items-center justify-between px-4 border-b bg-[#f5f5f5] pointer-events-auto">
+        {/* Top bar */}
+        <div className="h-14 flex items-center justify-between px-5 border-b border-[#D4CFC8] bg-[#FAFAF8]/95 backdrop-blur-sm pointer-events-auto shrink-0">
           <button
             onClick={() => setDrawerOpen((open) => !open)}
-            className="text-2xl text-gray-700"
+            className="w-8 h-8 flex flex-col items-center justify-center gap-1.5 text-[#1A1A1A]"
+            aria-label="Toggle tile panel"
           >
-            ☰
+            <span className="block w-5 h-px bg-current" />
+            <span className="block w-5 h-px bg-current" />
+            <span className="block w-5 h-px bg-current" />
           </button>
+
+          <p className="text-[10px] tracking-[0.3em] uppercase text-[#9A7A5E] font-medium">
+            Bathroom Visualiser
+          </p>
 
           <button
             onClick={() => history.back()}
-            className="px-6 py-1 rounded-full bg-[#5c555b] text-white text-sm"
+            className="text-[10px] tracking-[0.25em] uppercase text-[#1A1A1A] border-b border-[#1A1A1A] pb-0.5 hover:text-[#9A7A5E] hover:border-[#9A7A5E] transition-colors"
           >
             Return to Store
           </button>
-
-          <div className="text-xl text-gray-500">⋮</div>
-        </div>
-        <div className="md:hidden px-4 py-2 border-b bg-[#f5f5f5] pointer-events-auto">
-          <input
-            id="bathroom-search-mobile-top"
-            placeholder="Search tiles..."
-            className="w-full px-4 py-2 text-sm rounded-full border"
-          />
         </div>
 
-        {/* ===============================
-            BODY
-        =============================== */}
+        {/* Mobile search bar */}
+        <div className="md:hidden px-4 py-2.5 border-b border-[#D4CFC8] bg-[#FAFAF8]/95 pointer-events-auto shrink-0">
+          <div className="relative">
+            <input
+              id="bathroom-search-mobile-top"
+              placeholder="Search tiles..."
+              className="w-full border-0 border-b border-[#D4CFC8] pb-2 pt-1 pr-6 text-sm bg-transparent focus:outline-none focus:border-[#9A7A5E] transition-colors placeholder-[#C4C0BB] text-[#1A1A1A]"
+            />
+            <span className="absolute right-0 bottom-2.5 text-[#9A7A5E] pointer-events-none">
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden>
+                <circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" strokeWidth="1.3" />
+                <path d="M9.5 9.5L12 12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+              </svg>
+            </span>
+          </div>
+        </div>
+
+        {/* Body */}
         <div className="flex flex-1 overflow-hidden">
 
-          {/* ===== DESKTOP SIDEBAR ===== */}
+          {/* Desktop sidebar */}
           <aside
-            className={`hidden md:flex w-[320px] border-r bg-white flex-col pointer-events-auto transition-transform duration-300 ${
+            className={`hidden md:flex w-[300px] border-r border-[#D4CFC8] bg-[#FAFAF8] flex-col pointer-events-auto transition-transform duration-300 shrink-0 ${
               drawerOpen ? "translate-x-0" : "-translate-x-full"
-            } md:translate-x-0`}
+            }`}
           >
             <SidebarDesktop />
           </aside>
@@ -105,74 +115,61 @@ export default function BathroomVisualiserPage() {
           <div className="flex-1 hidden md:block" />
         </div>
 
-        {/* ===============================
-            MOBILE BOTTOM PANEL
-        =============================== */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t shadow-2xl z-40 pointer-events-auto">
-
+        {/* Mobile bottom panel */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-[#FAFAF8] border-t border-[#D4CFC8] shadow-2xl z-40 pointer-events-auto">
           <div className="p-4 space-y-4">
 
             {/* Apply To */}
             <div>
-              <div className="text-xs text-gray-500 mb-2 text-center">
+              <p className="text-[10px] tracking-[0.25em] uppercase text-[#9A7A5E] text-center mb-2">
                 Apply To
-              </div>
+              </p>
               <div className="flex gap-2">
-                <button data-apply-mode="set" className="flex-1 py-2 border rounded text-xs font-semibold">
-                  Set
-                </button>
-                <button data-apply-mode="walls" className="flex-1 py-2 border rounded text-xs font-semibold">
-                  Walls
-                </button>
-                <button data-apply-mode="floor" className="flex-1 py-2 border rounded text-xs font-semibold">
-                  Floor
-                </button>
+                {(["set", "walls", "floor"] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    data-apply-mode={mode}
+                    className="flex-1 py-2 border border-[#D4CFC8] text-[10px] tracking-[0.2em] uppercase text-[#1A1A1A] bg-white transition-colors"
+                  >
+                    {mode.charAt(0).toUpperCase() + mode.slice(1)}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Chevron + Name */}
-            <div className="flex items-center justify-between">
+            {/* Prev / tile name / Next */}
+            <div className="flex items-center justify-between gap-3">
               <button
                 id="bathroom-prev-tile"
-                className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center"
+                className="w-9 h-9 border border-[#D4CFC8] flex items-center justify-center text-[#9A7A5E] hover:border-[#9A7A5E] transition-colors shrink-0"
+                aria-label="Previous tile"
               >
-                ‹
+                <svg width="8" height="14" viewBox="0 0 8 14" fill="none" aria-hidden>
+                  <path d="M7 1L1 7L7 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
               </button>
 
               <div
                 id="bathroom-active-name"
-                className="text-sm font-semibold text-center flex-1 px-2"
+                className="text-xs tracking-wide text-[#1A1A1A] text-center flex-1 truncate font-light"
               >
-                Select Tile
+                Select a Tile
               </div>
 
               <button
                 id="bathroom-next-tile"
-                className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center"
+                className="w-9 h-9 border border-[#D4CFC8] flex items-center justify-center text-[#9A7A5E] hover:border-[#9A7A5E] transition-colors shrink-0"
+                aria-label="Next tile"
               >
-                ›
+                <svg width="8" height="14" viewBox="0 0 8 14" fill="none" aria-hidden>
+                  <path d="M1 1L7 7L1 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
               </button>
             </div>
 
-            {/* Thumbnail Strip */}
-            <div
-              id="bathroom-tile-list-mobile"
-              className="overflow-x-auto"
-            />
+            {/* Mobile thumbnail strip */}
+            <div id="bathroom-tile-list-mobile" className="overflow-x-auto" />
 
-          </div>
-        </div>
-
-        {/* ===== Bottom Footer (Desktop Only) ===== */}
-        <div className="hidden md:flex h-16 border-t bg-[#f9fafb] items-center justify-between px-6 text-sm pointer-events-auto">
-          <div>
-            Current selection:{" "}
-            <span id="option-placeholder" className="font-semibold">
-              -
-            </span>
-          </div>
-          <div className="text-gray-500">
-            Powered by <strong>Plan Vector</strong>
           </div>
         </div>
 
@@ -184,7 +181,6 @@ export default function BathroomVisualiserPage() {
 /* =====================================================
    DESKTOP SIDEBAR
 ===================================================== */
-
 function SidebarDesktop() {
   const [activeTileName, setActiveTileName] = useState("Select a tile");
 
@@ -203,52 +199,70 @@ function SidebarDesktop() {
 
   return (
     <>
-      <div className="p-4 border-b">
-        <input
-          id="bathroom-search"
-          placeholder="Search tiles..."
-          className="w-full px-4 py-2 text-sm rounded-full border"
-        />
+      {/* Search */}
+      <div className="px-5 py-4 border-b border-[#E8E5E0]">
+        <div className="relative">
+          <input
+            id="bathroom-search"
+            placeholder="Search tiles..."
+            className="w-full border-0 border-b border-[#D4CFC8] pb-2 pt-1 pr-6 text-sm bg-transparent focus:outline-none focus:border-[#9A7A5E] transition-colors placeholder-[#C4C0BB] text-[#1A1A1A]"
+          />
+          <span className="absolute right-0 bottom-2.5 text-[#9A7A5E] pointer-events-none">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden>
+              <circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" strokeWidth="1.3" />
+              <path d="M9.5 9.5L12 12" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+            </svg>
+          </span>
+        </div>
       </div>
 
-      <div className="px-4 py-4 border-b">
+      {/* Active tile + nav */}
+      <div className="px-5 py-3 border-b border-[#E8E5E0]">
         <div className="flex items-center gap-3">
           <button
-            className="w-8 h-8 rounded-full border bg-white"
             onClick={prevView}
+            className="w-8 h-8 border border-[#D4CFC8] flex items-center justify-center text-[#9A7A5E] hover:border-[#9A7A5E] transition-colors shrink-0"
+            aria-label="Previous tile"
           >
-            ‹
+            <svg width="6" height="11" viewBox="0 0 6 11" fill="none" aria-hidden>
+              <path d="M5 1L1 5.5L5 10" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </button>
-          <div className="flex-1 text-center text-sm font-semibold">
+          <div className="flex-1 text-center text-xs tracking-wide text-[#1A1A1A] font-light truncate">
             {activeTileName}
           </div>
           <button
-            className="w-8 h-8 rounded-full border bg-white"
             onClick={nextView}
+            className="w-8 h-8 border border-[#D4CFC8] flex items-center justify-center text-[#9A7A5E] hover:border-[#9A7A5E] transition-colors shrink-0"
+            aria-label="Next tile"
           >
-            ›
+            <svg width="6" height="11" viewBox="0 0 6 11" fill="none" aria-hidden>
+              <path d="M1 1L5 5.5L1 10" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </button>
         </div>
       </div>
 
-      <div className="px-4 py-3 border-b">
-        <div className="text-xs font-semibold mb-2">Apply To</div>
+      {/* Apply To */}
+      <div className="px-5 py-4 border-b border-[#E8E5E0]">
+        <p className="text-[10px] tracking-[0.25em] uppercase text-[#9A7A5E] mb-3">Apply To</p>
         <div className="grid grid-cols-3 gap-2">
-          <button data-apply-mode="set" className="px-2 py-1 text-xs rounded border bg-white">
-            Set
-          </button>
-          <button data-apply-mode="walls" className="px-2 py-1 text-xs rounded border bg-white">
-            Walls
-          </button>
-          <button data-apply-mode="floor" className="px-2 py-1 text-xs rounded border bg-white">
-            Floor
-          </button>
+          {(["set", "walls", "floor"] as const).map((mode) => (
+            <button
+              key={mode}
+              data-apply-mode={mode}
+              className="py-2 border border-[#D4CFC8] text-[10px] tracking-[0.2em] uppercase text-[#1A1A1A] bg-white transition-colors"
+            >
+              {mode.charAt(0).toUpperCase() + mode.slice(1)}
+            </button>
+          ))}
         </div>
       </div>
 
+      {/* Tile list */}
       <div
         id="bathroom-tile-list-desktop"
-        className="flex-1 overflow-y-auto p-4 space-y-3"
+        className="flex-1 overflow-y-auto"
       />
     </>
   );

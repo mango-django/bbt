@@ -5,6 +5,45 @@ import { useRouter, useSearchParams } from "next/navigation";
 const productTypes = ["adhesive", "grout", "sealer", "trim", "tool", "heating"];
 const colours = ["N/A", "White", "Black", "Grey", "Beige", "Silver", "Jasmine"];
 
+function Chevron() {
+  return (
+    <svg width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden>
+      <path
+        d="M1 1L5 5L9 1"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function StyledSelect({
+  value,
+  onChange,
+  children,
+}: {
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="relative">
+      <select
+        value={value}
+        onChange={onChange}
+        className="appearance-none bg-transparent border-0 border-b border-[#D4CFC8] py-1.5 pr-7 pl-0 text-xs tracking-wide text-[#1A1A1A] focus:outline-none focus:border-[#9A7A5E] cursor-pointer transition-colors duration-200"
+      >
+        {children}
+      </select>
+      <span className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-[#9A7A5E]">
+        <Chevron />
+      </span>
+    </div>
+  );
+}
+
 export default function InstallationFilters() {
   const router = useRouter();
   const params = useSearchParams();
@@ -17,41 +56,49 @@ export default function InstallationFilters() {
   }
 
   return (
-    <div className="flex flex-wrap gap-4 items-center">
-      {/* Product Type */}
-      <select
-        className="border border-gray-200 px-3 py-2 rounded"
-        value={params.get("type") || ""}
-        onChange={(e) => updateParam("type", e.target.value)}
-      >
-        <option value="">All Types</option>
-        {productTypes.map((t) => (
-          <option key={t} value={t}>{t}</option>
-        ))}
-      </select>
+    <div className="flex flex-wrap items-center gap-5">
+
+      {/* Type label */}
+      <div className="flex items-center gap-2.5">
+        <span className="text-[10px] tracking-[0.2em] uppercase text-[#9A7A5E] shrink-0">Type</span>
+        <StyledSelect
+          value={params.get("type") || ""}
+          onChange={(e) => updateParam("type", e.target.value)}
+        >
+          <option value="">All</option>
+          {productTypes.map((t) => (
+            <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
+          ))}
+        </StyledSelect>
+      </div>
 
       {/* Colour */}
-      <select
-        className="border border-gray-200 px-3 py-2 rounded"
-        value={params.get("colour") || ""}
-        onChange={(e) => updateParam("colour", e.target.value)}
-      >
-        <option value="">All Colours</option>
-        {colours.map((c) => (
-          <option key={c} value={c}>{c}</option>
-        ))}
-      </select>
+      <div className="flex items-center gap-2.5">
+        <span className="text-[10px] tracking-[0.2em] uppercase text-[#9A7A5E] shrink-0">Colour</span>
+        <StyledSelect
+          value={params.get("colour") || ""}
+          onChange={(e) => updateParam("colour", e.target.value)}
+        >
+          <option value="">All</option>
+          {colours.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </StyledSelect>
+      </div>
 
-      {/* Price Sort */}
-      <select
-        className="border border-gray-200 px-3 py-2 rounded"
-        value={params.get("sort") || "newest"}
-        onChange={(e) => updateParam("sort", e.target.value)}
-      >
-        <option value="newest">Newest</option>
-        <option value="low">Price: Low → High</option>
-        <option value="high">Price: High → Low</option>
-      </select>
+      {/* Sort */}
+      <div className="flex items-center gap-2.5">
+        <span className="text-[10px] tracking-[0.2em] uppercase text-[#9A7A5E] shrink-0">Sort</span>
+        <StyledSelect
+          value={params.get("sort") || "newest"}
+          onChange={(e) => updateParam("sort", e.target.value)}
+        >
+          <option value="newest">Newest</option>
+          <option value="low">Price: Low → High</option>
+          <option value="high">Price: High → Low</option>
+        </StyledSelect>
+      </div>
+
     </div>
   );
 }

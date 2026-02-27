@@ -11,59 +11,43 @@ export default function ProductCard({ product }: { product: any }) {
   );
   const mainImage = sortedImages[0]?.url || "/hero-placeholder.jpg";
 
-  // Structured fields
-  const size = product.dimension_string;
-  const price = product.price_per_m2;
-
+  const size = product.dimension_string as string | null;
+  const price = product.price_per_m2 as string | null;
   const slug = (product.slug || product.id || "").trim();
   const productHref = slug ? `/products/${encodeURIComponent(slug)}` : "#";
 
   return (
-    <Link
-      href={productHref}
-      className="block border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition bg-white"
-    >
-      {/* IMAGE */}
-      <div className="w-full h-56 bg-gray-100 relative">
-        {mainImage ? (
-          <img
-            src={mainImage}
-            alt={product.title}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-400">
-            No Image
-          </div>
-        )}
+    <Link href={productHref} className="group block">
+
+      {/* Image — 4:5 portrait with hover zoom */}
+      <div
+        className="relative w-full overflow-hidden bg-[#EEECE9]"
+        style={{ aspectRatio: "4 / 5" }}
+      >
+        <img
+          src={mainImage}
+          alt={product.title ?? ""}
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+        />
       </div>
 
-      {/* CONTENT */}
-      <div className="p-5 space-y-4 bg-white text-[#2d2d2d]">
-        {/* TITLE */}
-        <h3 className="font-medium text-lg leading-snug text-[#1f1f1f]">
+      {/* Details */}
+      <div className="mt-3 px-0.5">
+        {size && (
+          <p className="text-[10px] tracking-[0.2em] uppercase text-[#9A7A5E] mb-1">
+            {size}
+          </p>
+        )}
+        <p className="text-sm text-[#1A1A1A] font-light leading-snug tracking-wide">
           {product.title || "Untitled product"}
-        </h3>
-
-        {/* PRICE */}
+        </p>
         {price && (
-          <p className="text-blue-600 font-semibold text-sm">
+          <p className="mt-1 text-xs text-[#6B6B6B] tracking-wide">
             £{price} / m²
           </p>
         )}
-
-        {/* TILE SIZE */}
-        {size && (
-          <div className="text-sm text-neutral-600">
-            <span className="text-xs uppercase tracking-wide text-neutral-400 block mb-1">
-              Tile Size
-            </span>
-            <span className="text-base font-normal text-neutral-700">
-              {size}
-            </span>
-          </div>
-        )}
       </div>
+
     </Link>
   );
 }

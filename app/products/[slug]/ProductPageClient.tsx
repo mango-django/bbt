@@ -6,6 +6,43 @@ import { useCart } from "@/app/context/CartContext";
 import ProductGallery from "@/components/ProductGallery";
 import ProductCalculator from "@/components/ProductCalculator";
 
+function Chevron() {
+  return (
+    <svg width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden>
+      <path
+        d="M1 1L5 5L9 1"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function SpecRow({ label, value }: { label: string; value: any }) {
+  const display =
+    value === null ||
+    value === undefined ||
+    value === "" ||
+    value === "—" ||
+    value === "null null" ||
+    String(value).trim() === ""
+      ? null
+      : String(value);
+
+  if (!display) return null;
+
+  return (
+    <div className="grid grid-cols-5 gap-4 py-3 border-b border-[#E8E5E0] last:border-0">
+      <p className="col-span-2 text-[10px] tracking-[0.2em] uppercase text-[#9A7A5E]">
+        {label}
+      </p>
+      <p className="col-span-3 text-sm text-[#1A1A1A] font-light">{display}</p>
+    </div>
+  );
+}
+
 export default function ProductPageClient({ product, sortedImages }: any) {
   const { addItem } = useCart();
 
@@ -20,7 +57,6 @@ export default function ProductPageClient({ product, sortedImages }: any) {
   /* ----------------------------------------------
      NORMALISED BOX DATA
      ---------------------------------------------- */
-
   const weightPerBox =
     num(product.weight_per_box) ??
     num(product.box_weight_kg) ??
@@ -29,7 +65,7 @@ export default function ProductPageClient({ product, sortedImages }: any) {
   const coveragePerBox =
     Number(product.box_coverage_m2) ||
     Number(product.m2_per_box) ||
-    0.01; // prevent division issues
+    0.01;
 
   /* ----------------------------------------------
      DERIVED PRICING (fallback when DB is null)
@@ -94,173 +130,204 @@ export default function ProductPageClient({ product, sortedImages }: any) {
      ADD TO CART
      ---------------------------------------------- */
   const handleAddToBasket = () => {
-  if (finishList.length > 0 && !selectedFinish) {
-    alert("Please select a finish before adding to basket.");
-    return;
-  }
+    if (finishList.length > 0 && !selectedFinish) {
+      alert("Please select a finish before adding to basket.");
+      return;
+    }
 
-  addItem({
-    product_id: product.id,
-    title: product.title,
-    image: firstImage,
-    finish: selectedFinish,
-
-    /* ----------------------------------------
-       REQUIRED BY NEW CART FORMAT (TILE)
-       ---------------------------------------- */
-    productType: "tile",
-    price_per_m2: Number(product.price_per_m2),
-
-    m2: calculatedM2,       // includes wastage
-    coverage: coveragePerBox,
-    boxWeight: weightPerBox,
-
-    /* ----------------------------------------
-       ALL PRODUCTS HAVE QUANTITY
-       ---------------------------------------- */
-    quantity: 1,
-  });
-};
-
+    addItem({
+      product_id: product.id,
+      title: product.title,
+      image: firstImage,
+      finish: selectedFinish,
+      productType: "tile",
+      price_per_m2: Number(product.price_per_m2),
+      m2: calculatedM2,
+      coverage: coveragePerBox,
+      boxWeight: weightPerBox,
+      quantity: 1,
+    });
+  };
 
   /* ----------------------------------------------
      RENDER VIEW
      ---------------------------------------------- */
   return (
-    <div className="bg-white text-[#1f1f1f]">
-      <div className="max-w-6xl mx-auto p-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+    <div className="min-h-screen bg-[#FAFAF8]">
 
-          {/* IMAGE GALLERY */}
-          <ProductGallery images={sortedImages} title={product.title} />
+      {/* Breadcrumb */}
+      <div className="border-b border-[#E8E5E0] bg-white">
+        <div className="max-w-[1400px] mx-auto px-6 sm:px-8 py-4">
+          <nav className="flex items-center gap-2 text-[10px] tracking-[0.25em] uppercase">
+            <Link href="/tiles" className="text-[#9A7A5E] hover:text-[#7A5E44] transition-colors">
+              All Tiles
+            </Link>
+            <span className="text-[#D4CFC8]">/</span>
+            <span className="text-[#1A1A1A]">{product.title}</span>
+          </nav>
+        </div>
+      </div>
 
-          {/* RIGHT SECTION */}
+      {/* Main layout */}
+      <div className="max-w-[1400px] mx-auto px-6 sm:px-8 py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 xl:gap-20">
+
+          {/* LEFT — sticky gallery */}
+          <div className="lg:sticky lg:top-6 self-start">
+            <ProductGallery images={sortedImages} title={product.title} />
+          </div>
+
+          {/* RIGHT — product info */}
           <div>
-            <h1 className="text-3xl font-bold mb-3">{product.title}</h1>
 
-            <p className="text-gray-700 text-lg mb-3">
-              {product.tile_width_mm} × {product.tile_height_mm} mm
-            </p>
+            {/* Title & size */}
+            <div className="mb-6">
+              {(widthMm !== null && heightMm !== null) && (
+                <p className="text-[10px] tracking-[0.25em] uppercase text-[#9A7A5E] mb-2">
+                  {widthMm} × {heightMm} mm
+                </p>
+              )}
+              <h1 className="text-3xl sm:text-4xl font-light tracking-wider text-[#1A1A1A] leading-tight">
+                {product.title}
+              </h1>
+            </div>
 
-            <p className="text-gray-600 leading-relaxed mb-6">
-              {product.description}
-            </p>
-
-            {/* FINISH SELECTOR */}
-            {finishList.length > 0 && (
-              <div className="mb-6">
-                <label className="font-semibold block mb-2">Finish</label>
-                <select
-                  className="border p-3 w-full rounded"
-                  value={selectedFinish}
-                  onChange={(e) => setSelectedFinish(e.target.value)}
-                >
-                  <option value="">Select finish</option>
-                  {finishList.map((f: string) => (
-                    <option key={f} value={f}>{f}</option>
-                  ))}
-                </select>
+            {/* Price */}
+            {product.price_per_m2 && (
+              <div className="flex items-baseline gap-1.5 mb-6">
+                <span className="text-2xl font-light text-[#1A1A1A]">
+                  £{product.price_per_m2}
+                </span>
+                <span className="text-xs tracking-widest uppercase text-[#9A7A5E]">/ m²</span>
               </div>
             )}
 
-            {/* PRICE DISPLAY */}
-            <div className="text-2xl font-semibold mb-6">
-              £{product.price_per_m2} / m²
+            {/* Description */}
+            {product.description && (
+              <p className="text-sm text-[#6B6B6B] leading-relaxed mb-8">
+                {product.description}
+              </p>
+            )}
+
+            {/* Finish selector */}
+            {finishList.length > 0 && (
+              <div className="mb-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <p className="text-[10px] tracking-[0.25em] uppercase text-[#9A7A5E] font-medium shrink-0">
+                    Finish
+                  </p>
+                  <div className="flex-1 h-px bg-[#E8E5E0]" />
+                </div>
+                {finishList.length === 1 ? (
+                  <p className="text-sm text-[#1A1A1A] font-light">{finishList[0]}</p>
+                ) : (
+                  <div className="relative">
+                    <select
+                      value={selectedFinish}
+                      onChange={(e) => setSelectedFinish(e.target.value)}
+                      className="appearance-none w-full border-0 border-b border-[#D4CFC8] pb-2 pt-1 pr-8 text-sm bg-transparent focus:outline-none focus:border-[#9A7A5E] cursor-pointer transition-colors text-[#1A1A1A]"
+                    >
+                      <option value="">Select a finish</option>
+                      {finishList.map((f: string) => (
+                        <option key={f} value={f}>{f}</option>
+                      ))}
+                    </select>
+                    <span className="pointer-events-none absolute right-0 bottom-2.5 text-[#9A7A5E]">
+                      <Chevron />
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Calculator */}
+            <div className="mb-6">
+              <ProductCalculator
+                product={productWithDerivedPrices}
+                onChange={(calc) => {
+                  setCalculatedM2(calc.m2);
+                  setCalculatedBoxes(calc.boxes);
+                  setCalculatedTiles(calc.tiles);
+                }}
+              />
             </div>
 
-            {/* CALCULATOR */}
-            <ProductCalculator
-              product={productWithDerivedPrices}
-              onChange={(calc) => {
-                setCalculatedM2(calc.m2);
-                setCalculatedBoxes(calc.boxes);
-                setCalculatedTiles(calc.tiles);
-              }}
-            />
-
-            {/* ADD TO CART BUTTON */}
+            {/* Add to Basket */}
             <button
-              className="mt-6 w-full py-3 bg-blue-600 text-white rounded-none"
               onClick={handleAddToBasket}
+              className="w-full py-4 bg-[#1A1A1A] text-white text-xs tracking-[0.3em] uppercase hover:bg-[#2A2A2A] transition-colors duration-200"
             >
               Add to Basket
             </button>
 
-            {/* SPECIFICATIONS TABLE */}
-            <div className="mt-10 border border-gray-200 overflow-hidden">
-              <table className="w-full text-sm">
-                <tbody>
-                  <TableRow
-                    label="Price per Tile"
-                    value={
-                      pricePerTile !== null ? `£${pricePerTile}` : "—"
-                    }
-                  />
-                  <TableRow
-                    label="Price per Box"
-                    value={
-                      pricePerBox !== null ? `£${pricePerBox}` : "—"
-                    }
-                  />
-                  <TableRow label="m² per Box" value={`${coveragePerBox} m²`} />
-                  <TableRow label="Tiles per Box" value={product.tiles_per_box} />
-                  <TableRow label="Tile Thickness" value={`${product.tile_thickness_mm} mm`} />
-                  <TableRow label="Material" value={product.material || "—"} />
-                  <TableRow
-                    label="Colour"
-                    value={
-                      Array.isArray(product.color)
-                        ? product.color.join(", ")
-                        : product.color || "—"
-                    }
-                  />
-                  <TableRow
-                    label="Finish"
-                    value={selectedFinish || finishList.join(", ") || "—"}
-                  />
-                  <TableRow
-                    label="Applications"
-                    value={
-                      Array.isArray(product.application)
-                        ? product.application.join(", ")
-                        : product.application || "—"}
-                  />
-                  <TableRow
-                    label="Suitable Rooms"
-                    value={
-                      Array.isArray(product.suitable_room)
-                        ? product.suitable_room.join(", ")
-                        : product.suitable_room || "—"}
-                  />
-                  <TableRow
-                    label="Indoor / Outdoor"
-                    value={product.indoor_outdoor || "—"}
-                  />
-                  <TableRow label="Weight per Box" value={`${weightPerBox} kg`} />
-                  <TableRow label="Boxes in Stock" value={product.boxes_in_stock} />
-                  <TableRow label="Lead Time" value={`${product.lead_time_days} days`} />
-                </tbody>
-              </table>
-            </div>
-
+            {/* Visualiser link */}
             <Link
               href="/visualiser"
-              className="mt-6 w-full py-3 bg-black text-white rounded-none text-center"
+              className="mt-3 w-full py-3.5 border border-[#1A1A1A] text-[#1A1A1A] text-xs tracking-[0.3em] uppercase flex items-center justify-center hover:bg-[#1A1A1A] hover:text-white transition-colors duration-200"
             >
-              View In 3D Visualiser
+              View in 3D Visualiser
             </Link>
+
+            {/* Specifications */}
+            <div className="mt-10">
+              <div className="flex items-center gap-3 mb-5">
+                <p className="text-[10px] tracking-[0.25em] uppercase text-[#9A7A5E] font-medium shrink-0">
+                  Specifications
+                </p>
+                <div className="flex-1 h-px bg-[#E8E5E0]" />
+              </div>
+
+              <div className="border border-[#E8E5E0] bg-white px-5 py-1">
+                <SpecRow
+                  label="Price per Tile"
+                  value={pricePerTile !== null ? `£${pricePerTile}` : null}
+                />
+                <SpecRow
+                  label="Price per Box"
+                  value={pricePerBox !== null ? `£${pricePerBox}` : null}
+                />
+                <SpecRow label="m² per Box" value={coveragePerBox ? `${coveragePerBox} m²` : null} />
+                <SpecRow label="Tiles per Box" value={product.tiles_per_box} />
+                <SpecRow label="Tile Thickness" value={product.tile_thickness_mm ? `${product.tile_thickness_mm} mm` : null} />
+                <SpecRow label="Material" value={product.material} />
+                <SpecRow
+                  label="Colour"
+                  value={
+                    Array.isArray(product.color)
+                      ? product.color.join(", ")
+                      : product.color
+                  }
+                />
+                <SpecRow
+                  label="Finish"
+                  value={selectedFinish || finishList.join(", ") || null}
+                />
+                <SpecRow
+                  label="Applications"
+                  value={
+                    Array.isArray(product.application)
+                      ? product.application.join(", ")
+                      : product.application
+                  }
+                />
+                <SpecRow
+                  label="Suitable Rooms"
+                  value={
+                    Array.isArray(product.suitable_room)
+                      ? product.suitable_room.join(", ")
+                      : product.suitable_room
+                  }
+                />
+                <SpecRow label="Indoor / Outdoor" value={product.indoor_outdoor} />
+                <SpecRow label="Weight per Box" value={weightPerBox ? `${weightPerBox} kg` : null} />
+                <SpecRow label="Boxes in Stock" value={product.boxes_in_stock} />
+                <SpecRow label="Lead Time" value={product.lead_time_days ? `${product.lead_time_days} days` : null} />
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
     </div>
-  );
-}
-
-function TableRow({ label, value }: { label: string; value: any }) {
-  return (
-    <tr className="border-b">
-      <td className="p-3 font-medium text-gray-700">{label}</td>
-      <td className="p-3 text-gray-900">{value}</td>
-    </tr>
   );
 }

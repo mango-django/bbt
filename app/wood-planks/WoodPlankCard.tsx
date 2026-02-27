@@ -5,48 +5,41 @@ import Link from "next/link";
 export default function WoodPlankCard({ plank }: { plank: any }) {
   const images = Array.isArray(plank.images) ? plank.images : [];
   const mainImage = images[0] || "/hero-placeholder.jpg";
-
-  const slug = plank.slug?.trim();
-  const fallbackId = plank.id ? String(plank.id) : "";
-  const target = slug || fallbackId;
-  const href = target ? `/wood-planks/${encodeURIComponent(target)}` : "#";
+  const slug = plank.slug?.trim() || plank.id;
+  const href = slug ? `/wood-planks/${encodeURIComponent(slug)}` : "#";
 
   return (
-    <Link
-      href={`/wood-planks/${plank.slug}`}
-      className="block border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition bg-white"
-    >
-      {/* IMAGE */}
-      <div className="w-full h-56 bg-gray-100 relative">
+    <Link href={href} className="group block">
+
+      {/* Image — 4:5 portrait with hover zoom */}
+      <div
+        className="relative w-full overflow-hidden bg-[#EEECE9]"
+        style={{ aspectRatio: "4 / 5" }}
+      >
         <img
           src={mainImage}
           alt={plank.title}
-          className="w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
         />
       </div>
 
-      {/* CONTENT */}
-      <div className="p-5 space-y-4 bg-white text-[#2d2d2d]">
-        {/* TITLE */}
-        <h3 className="font-medium text-lg leading-snug text-[#1f1f1f]">
-          {plank.title}
-        </h3>
-
-        {/* PRICE */}
-        <p className="text-blue-600 font-semibold text-sm">
-          £{plank.price_per_box} / pack
-        </p>
-
-        {/* COVERAGE */}
-        <div className="text-sm text-neutral-600">
-          <span className="text-xs uppercase tracking-wide text-neutral-400 block mb-1">
-            Coverage
-          </span>
-          <span className="text-base font-normal text-neutral-700">
+      {/* Details */}
+      <div className="mt-3 px-0.5">
+        {plank.coverage_per_box && (
+          <p className="text-[10px] tracking-[0.2em] uppercase text-[#9A7A5E] mb-1">
             {plank.coverage_per_box} m² per pack
-          </span>
-        </div>
+          </p>
+        )}
+        <p className="text-sm text-[#1A1A1A] font-light leading-snug tracking-wide">
+          {plank.title}
+        </p>
+        {plank.price_per_box && (
+          <p className="mt-1 text-xs text-[#6B6B6B] tracking-wide">
+            £{plank.price_per_box} / pack
+          </p>
+        )}
       </div>
+
     </Link>
   );
 }

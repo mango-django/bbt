@@ -18,43 +18,48 @@ export default function ProductGallery({
   const validImages = images.filter((img) => !!img?.url);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const fallbackImage = "/hero-bathroom.webp";
-  const selectedImage = validImages[selectedIndex]?.url ?? fallbackImage;
+  const fallback = "/hero-bathroom.webp";
+  const selectedImage = validImages[selectedIndex]?.url ?? fallback;
 
   return (
     <div>
-      <div className="w-full border border-gray-200 rounded-none overflow-hidden bg-white aspect-square flex items-center justify-center">
+      {/* Main image */}
+      <div className="relative w-full bg-[#EEECE9] overflow-hidden" style={{ aspectRatio: "1 / 1" }}>
         <Image
           key={selectedImage}
           src={selectedImage}
           alt={title}
-          width={1000}
-          height={1000}
-          className="object-contain w-full h-full"
-          sizes="(max-width: 768px) 100vw, 50vw"
+          fill
+          className="object-contain p-6 transition-opacity duration-300"
+          sizes="(max-width: 1024px) 100vw, 50vw"
+          priority
         />
       </div>
 
-      <div className="flex gap-3 mt-4 overflow-x-auto">
-        {validImages.map((img, index) => (
-          <button
-            key={img.id ?? `${index}-${img.url}`}
-            type="button"
-            onClick={() => setSelectedIndex(index)}
-            className={`w-24 h-24 border rounded-none overflow-hidden ${
-              selectedIndex === index ? "border-neutral-900" : "border-gray-200"
-            }`}
-          >
-            <Image
-              src={img.url ?? fallbackImage}
-              alt={`Thumbnail ${index + 1}`}
-              width={250}
-              height={250}
-              className="object-cover w-full h-full"
-            />
-          </button>
-        ))}
-      </div>
+      {/* Thumbnail strip */}
+      {validImages.length > 1 && (
+        <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
+          {validImages.map((img, idx) => (
+            <button
+              key={img.id ?? `${idx}-${img.url}`}
+              type="button"
+              onClick={() => setSelectedIndex(idx)}
+              className={`relative w-20 h-20 shrink-0 overflow-hidden bg-[#EEECE9] transition-all duration-200
+                ${selectedIndex === idx
+                  ? "ring-1 ring-[#9A7A5E]"
+                  : "ring-1 ring-[#E8E5E0] hover:ring-[#C4BFB9]"
+                }`}
+            >
+              <Image
+                src={img.url ?? fallback}
+                alt={`View ${idx + 1}`}
+                fill
+                className="object-cover"
+              />
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
