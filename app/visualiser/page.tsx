@@ -41,8 +41,9 @@ export default function VisualiserHubPage() {
           <div className="flex-1 h-px bg-[#E8E5E0]" />
         </div>
 
-        {/* Bathroom card */}
+        {/* Visualiser cards */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+          {/* Bathroom Visualiser card */}
           <div className="border border-[#E8E5E0] bg-white overflow-hidden flex flex-col sm:flex-row">
             {/* Image */}
             <div className="w-full sm:w-2/5 overflow-hidden bg-[#EEECE9]" style={{ minHeight: "220px" }}>
@@ -74,6 +75,46 @@ export default function VisualiserHubPage() {
                   className="inline-block w-full text-center py-4 bg-[#1A1A1A] text-white text-xs tracking-[0.3em] uppercase hover:bg-[#2A2A2A] transition-colors duration-200"
                 >
                   Open Bathroom Visualiser
+                </Link>
+                <p className="text-[10px] tracking-[0.2em] uppercase text-[#C4BFB9] mt-3 text-center">
+                  Runs directly in your browser
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* 25 Popular Bathroom Floor Tiles card */}
+          <div className="border border-[#E8E5E0] bg-white overflow-hidden flex flex-col sm:flex-row">
+            {/* Image */}
+            <div className="w-full sm:w-2/5 overflow-hidden bg-[#EEECE9]" style={{ minHeight: "220px" }}>
+              <img
+                src="/visualiser/25-popular-bathroom-floors-tiles/bathroom-floor-calacatta-gold-white.webp"
+                alt="25 Popular Bathroom Floor Tiles Preview"
+                className="w-full h-full object-cover"
+                style={{ minHeight: "220px" }}
+              />
+            </div>
+
+            {/* Content */}
+            <div className="p-6 sm:p-8 flex flex-col justify-between sm:w-3/5">
+              <div>
+                <p className="text-[10px] tracking-[0.25em] uppercase text-[#9A7A5E] mb-2">
+                  Available Now
+                </p>
+                <h2 className="text-xl sm:text-2xl font-light tracking-wider text-[#1A1A1A] mb-3">
+                  25 Popular Bathroom Floor Tiles
+                </h2>
+                <p className="text-sm text-[#6B6B6B] leading-relaxed">
+                  Preview 25 of our most popular floor tiles in a realistic bathroom setting and find the perfect match.
+                </p>
+              </div>
+
+              <div className="mt-6">
+                <Link
+                  href="/visualiser/25-popular-bathroom-floor-tiles"
+                  className="inline-block w-full text-center py-4 bg-[#1A1A1A] text-white text-xs tracking-[0.3em] uppercase hover:bg-[#2A2A2A] transition-colors duration-200"
+                >
+                  Explore Floor Tiles
                 </Link>
                 <p className="text-[10px] tracking-[0.2em] uppercase text-[#C4BFB9] mt-3 text-center">
                   Runs directly in your browser

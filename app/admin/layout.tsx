@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { supabaseServerAuth } from "@/lib/supabase/server-auth";
 import LogoutButton from "@/components/account/LogoutButton";
 import AdminClientShell from "@/components/admin/AdminClientShell";
+import OrdersNavBadge from "@/components/admin/OrdersNavBadge";
 
 export default async function AdminLayout({
   children,
@@ -50,7 +51,7 @@ export default async function AdminLayout({
           <Link href="/admin/installation-products">
             Installation Products
           </Link>
-          <Link href="/admin/orders">Orders</Link>
+          <OrdersNavBadge />
         </nav>
 
         <div className="mt-auto pt-6">

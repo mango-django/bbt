@@ -7,7 +7,8 @@ export async function GET() {
   const { count, error } = await admin
     .from("orders")
     .select("*", { count: "exact", head: true })
-    .eq("seen_by_admin", false);
+    .eq("seen_by_admin", false)
+    .eq("payment_status", "paid");
 
   if (error) {
     return NextResponse.json({ count: 0 });
