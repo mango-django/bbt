@@ -42,12 +42,17 @@ export default function BathroomFloorsVisualiserPage() {
         />
       </div>
 
-      {/* Single floor image layer */}
+      {/* Two stacked floor image layers for crossfade */}
       <div className="absolute left-0 right-0 bottom-0 -top-24 md:top-0 w-full h-full z-0">
         <img
-          id="bf-floor-layer"
+          id="bf-floor-layer-back"
+          alt=""
+          className="absolute inset-0 w-full h-full object-contain z-10"
+        />
+        <img
+          id="bf-floor-layer-front"
           alt="Bathroom floor visualisation"
-          className="absolute inset-0 w-full h-full object-contain z-10 transition-opacity duration-300"
+          className="absolute inset-0 w-full h-full object-contain z-20 transition-opacity duration-500"
         />
       </div>
 

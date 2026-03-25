@@ -385,7 +385,8 @@ const TILES: FloorTileProduct[] = [
    DOM REFERENCES
 ===================================================== */
 
-let floorImg: HTMLImageElement | null = null;
+let floorFront: HTMLImageElement | null = null;
+let floorBack: HTMLImageElement | null = null;
 let listContainer: HTMLElement | null = null;
 let searchInputs: HTMLInputElement[] = [];
 let productModal: HTMLElement | null = null;
@@ -410,21 +411,23 @@ export function initBathroomFloors() {
     renderTileList(TILES);
   });
 
-  floorImg = document.getElementById("bf-floor-layer") as HTMLImageElement;
+  floorFront = document.getElementById("bf-floor-layer-front") as HTMLImageElement;
+  floorBack = document.getElementById("bf-floor-layer-back") as HTMLImageElement;
 
   searchInputs = [
     document.getElementById("bf-search") as HTMLInputElement,
     document.getElementById("bf-search-mobile-top") as HTMLInputElement,
   ].filter(Boolean);
 
-  if (!floorImg || !listContainer) {
+  if (!floorFront || !floorBack || !listContainer) {
     console.warn("Bathroom floors visualiser DOM not ready");
     return;
   }
 
   // Show first tile by default
   if (TILES.length) {
-    floorImg.src = TILES[0].floorImage;
+    floorFront.src = TILES[0].floorImage;
+    floorBack.src = TILES[0].floorImage;
     activeTileId = TILES[0].id;
     activeTileIndex = 0;
   }
@@ -456,7 +459,20 @@ function applyTile(tile: FloorTileProduct, index?: number) {
     activeTileIndex = TILES.findIndex((t) => t.id === tile.id);
   }
 
-  floorImg!.src = tile.floorImage;
+  // Crossfade: load new tile on back layer, then fade out front to reveal it
+  if (floorFront && floorBack) {
+    // Set the new tile on the back layer (hidden behind front)
+    floorBack.src = tile.floorImage;
+    floorBack.onload = () => {
+      // Fade out the front layer to reveal the new tile behind it
+      floorFront!.style.opacity = "0";
+      // Once the fade completes, update front to match and reset
+      setTimeout(() => {
+        floorFront!.src = tile.floorImage;
+        floorFront!.style.opacity = "1";
+      }, 500); // matches duration-500
+    };
+  }
 
   window.dispatchEvent(
     new CustomEvent<{ name: string }>("bf-active-tile", {
