@@ -1,25 +1,9 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { generateOrderRef } from "@/lib/utils/orderRef";
 
-/* ---------------------------------------------------------
-   STRIPE CLIENT (FIXED)
---------------------------------------------------------- */
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-
-});
-
-/* ---------------------------------------------------------
-   HELPERS
---------------------------------------------------------- */
-function generateOrderRef() {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let ref = "BL-";
-  for (let i = 0; i < 10; i += 1) {
-    ref += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return ref;
-}
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {});
 
 function getStripeSafeImageUrl(image: unknown): string | null {
   if (typeof image !== "string") return null;

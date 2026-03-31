@@ -1,7 +1,6 @@
 import { Resend } from "resend";
 
-type OrderNotification = {
-  id: string;
+type OrderConfirmation = {
   order_ref: string;
   customer_name: string;
   customer_email: string;
@@ -12,20 +11,17 @@ type OrderNotification = {
   items: { title: string; finish?: string; m2?: number; quantity?: number }[];
 };
 
-export async function sendAdminOrderEmail(order: OrderNotification) {
+export async function sendOrderConfirmationEmail(order: OrderConfirmation) {
   if (!process.env.RESEND_API_KEY) {
-    console.log("📧 [DEV MODE] Admin order email skipped for:", order.order_ref);
+    console.log("📧 [DEV MODE] Confirmation email skipped for:", order.order_ref);
     return;
   }
 
-  const adminEmail = process.env.ADMIN_EMAIL;
-  if (!adminEmail) {
-    console.warn("⚠️ ADMIN_EMAIL not set — skipping admin notification");
-    return;
+  if (!order.customer_email) {
+    throw new Error("Missing customer email");
   }
 
   const resend = new Resend(process.env.RESEND_API_KEY);
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://bellos-tiles.com";
 
   const itemRows = order.items
     .map(
@@ -41,34 +37,26 @@ export async function sendAdminOrderEmail(order: OrderNotification) {
     )
     .join("");
 
+  const firstName = order.customer_name?.split(" ")[0] ?? "there";
+
   await resend.emails.send({
     from: "Bellos Tiles <orders@bellos-tiles.com>",
-    to: adminEmail,
-    subject: `New Order Received — ${order.order_ref}`,
+    to: order.customer_email,
+    subject: `Order Confirmed — ${order.order_ref}`,
     html: `
       <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;">
         <div style="background:#1A1A1A;padding:24px 32px;">
-          <h1 style="color:#fff;font-size:18px;font-weight:400;letter-spacing:0.1em;margin:0;">NEW ORDER RECEIVED</h1>
+          <h1 style="color:#fff;font-size:18px;font-weight:400;letter-spacing:0.1em;margin:0;">BELLOS TILES</h1>
         </div>
 
         <div style="padding:28px 32px;background:#FAFAF8;">
+          <p style="font-size:16px;color:#1A1A1A;margin:0 0 6px;">Hi ${firstName},</p>
+          <p style="font-size:14px;color:#6B6B6B;margin:0 0 24px;">Thank you for your order. We're getting everything ready for you.</p>
+
           <p style="font-size:13px;color:#9A7A5E;text-transform:uppercase;letter-spacing:0.15em;margin:0 0 6px;">Order Reference</p>
-          <p style="font-size:22px;font-weight:300;color:#1A1A1A;margin:0 0 20px;">${order.order_ref}</p>
+          <p style="font-size:22px;font-weight:300;color:#1A1A1A;margin:0 0 24px;">${order.order_ref}</p>
 
-          <table style="width:100%;margin-bottom:16px;">
-            <tr>
-              <td style="font-size:13px;color:#6B6B6B;padding:4px 0;">Customer</td>
-              <td style="font-size:14px;color:#1A1A1A;text-align:right;">${order.customer_name}</td>
-            </tr>
-            <tr>
-              <td style="font-size:13px;color:#6B6B6B;padding:4px 0;">Email</td>
-              <td style="font-size:14px;color:#1A1A1A;text-align:right;">${order.customer_email}</td>
-            </tr>
-          </table>
-
-          <div style="border-top:1px solid #E8E5E0;margin:20px 0;"></div>
-
-          <p style="font-size:13px;color:#9A7A5E;text-transform:uppercase;letter-spacing:0.15em;margin:0 0 12px;">Items</p>
+          <p style="font-size:13px;color:#9A7A5E;text-transform:uppercase;letter-spacing:0.15em;margin:0 0 12px;">Your Items</p>
           <table style="width:100%;border-collapse:collapse;">
             ${itemRows}
           </table>
@@ -94,11 +82,13 @@ export async function sendAdminOrderEmail(order: OrderNotification) {
             </tr>
           </table>
 
-          <div style="margin-top:28px;text-align:center;">
-            <a href="${siteUrl}/admin/orders/${order.id}"
-               style="display:inline-block;padding:14px 36px;background:#1A1A1A;color:#fff;text-decoration:none;font-size:12px;letter-spacing:0.2em;text-transform:uppercase;">
-              View Order
-            </a>
+          <div style="border-top:1px solid #E8E5E0;margin:24px 0;"></div>
+
+          <p style="font-size:14px;color:#6B6B6B;margin:0 0 4px;">We'll send you another email when your order has been dispatched.</p>
+          <p style="font-size:14px;color:#6B6B6B;margin:0;">If you have any questions, just reply to this email.</p>
+
+          <div style="margin-top:32px;padding-top:20px;border-top:1px solid #E8E5E0;">
+            <p style="font-size:12px;color:#C4BFB9;margin:0;">Bellos Tiles</p>
           </div>
         </div>
       </div>

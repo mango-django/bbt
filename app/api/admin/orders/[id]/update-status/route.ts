@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, supabaseAdmin } from "@/lib/supabase/admin";
+import { sendOrderDispatchedEmail } from "@/lib/email/sendOrderDispatched";
 
 export const runtime = "nodejs";
 
@@ -36,13 +37,19 @@ export async function POST(
 
   const supabase = supabaseAdmin();
 
+  const updatePayload: Record<string, unknown> = {
+    status,
+    tracking_number: tracking_number || null,
+    updated_at: new Date().toISOString(),
+  };
+
+  if (status === "dispatched") {
+    updatePayload.dispatched_at = new Date().toISOString();
+  }
+
   const { error } = await supabase
     .from("orders")
-    .update({
-      status,
-      tracking_number: tracking_number || null,
-      updated_at: new Date().toISOString(),
-    })
+    .update(updatePayload)
     .eq("id", id);
 
   if (error) {
@@ -51,6 +58,27 @@ export async function POST(
       { error: "Failed to update order" },
       { status: 500 }
     );
+  }
+
+  // Send dispatch notification email to customer
+  if (status === "dispatched") {
+    try {
+      const { data: order } = await supabase
+        .from("orders")
+        .select("customer_email, order_ref, tracking_number")
+        .eq("id", id)
+        .single();
+
+      if (order) {
+        await sendOrderDispatchedEmail({
+          customer_email: order.customer_email,
+          public_order_id: order.order_ref,
+          tracking_number: order.tracking_number,
+        });
+      }
+    } catch (emailErr) {
+      console.error("Failed to send dispatch email:", emailErr);
+    }
   }
 
   return NextResponse.json({ success: true });

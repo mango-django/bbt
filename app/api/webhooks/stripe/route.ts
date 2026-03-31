@@ -1,15 +1,12 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { supabaseAdmin } from "@/lib/supabase/admin"; // ADMIN SUPABASE (service role key)
+import { supabaseAdmin } from "@/lib/supabase/admin";
+import { sendAdminOrderEmail } from "@/lib/email/sendAdminOrderEmail";
+import { sendOrderConfirmationEmail } from "@/lib/email/sendOrderConfirmationEmail";
 
- 
 export const dynamic = "force-dynamic";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  
-});
-
-const supabase = supabaseAdmin();
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {});
 
 export async function POST(req: Request) {
   const rawBody = Buffer.from(await req.arrayBuffer());
@@ -25,6 +22,8 @@ export async function POST(req: Request) {
     console.error("❌ Webhook signature verification failed:", message);
     return new NextResponse(`Webhook Error: ${message}`, { status: 400 });
   }
+
+  const supabase = supabaseAdmin();
 
   // -------------------------------------------------------------
   // HANDLE PAYMENT INTENT SUCCESS (Elements flow)
@@ -54,6 +53,38 @@ export async function POST(req: Request) {
     }
 
     console.log("✅ Order marked paid via payment_intent.succeeded:", orderId);
+
+    // Send notification emails (non-blocking — don't fail the webhook)
+    try {
+      const { data: paidOrder } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("id", orderId)
+        .single();
+
+      if (paidOrder) {
+        const items = Array.isArray(paidOrder.items) ? paidOrder.items as { title: string; finish?: string; m2?: number; quantity?: number }[] : [];
+        const emailPayload = {
+          id: paidOrder.id,
+          order_ref: paidOrder.order_ref,
+          customer_name: paidOrder.customer_name,
+          customer_email: paidOrder.customer_email,
+          subtotal: paidOrder.subtotal,
+          vat: paidOrder.vat,
+          shipping_cost: paidOrder.shipping_cost,
+          total: paidOrder.total,
+          items,
+        };
+
+        await Promise.allSettled([
+          sendAdminOrderEmail(emailPayload),
+          sendOrderConfirmationEmail(emailPayload),
+        ]);
+      }
+    } catch (emailErr) {
+      console.error("⚠️ Email notification error (non-fatal):", emailErr);
+    }
+
     return NextResponse.json({ received: true });
   }
 
@@ -84,6 +115,38 @@ export async function POST(req: Request) {
         }
 
         console.log("✅ Order marked paid:", orderId);
+
+        // Send notification emails
+        try {
+          const { data: paidOrder } = await supabase
+            .from("orders")
+            .select("*")
+            .eq("id", orderId)
+            .single();
+
+          if (paidOrder) {
+            const items = Array.isArray(paidOrder.items) ? paidOrder.items as { title: string; finish?: string; m2?: number; quantity?: number }[] : [];
+            const emailPayload = {
+              id: paidOrder.id,
+              order_ref: paidOrder.order_ref,
+              customer_name: paidOrder.customer_name,
+              customer_email: paidOrder.customer_email,
+              subtotal: paidOrder.subtotal,
+              vat: paidOrder.vat,
+              shipping_cost: paidOrder.shipping_cost,
+              total: paidOrder.total,
+              items,
+            };
+
+            await Promise.allSettled([
+              sendAdminOrderEmail(emailPayload),
+              sendOrderConfirmationEmail(emailPayload),
+            ]);
+          }
+        } catch (emailErr) {
+          console.error("⚠️ Email notification error (non-fatal):", emailErr);
+        }
+
         return NextResponse.json({ received: true });
       }
 
@@ -108,6 +171,13 @@ export async function POST(req: Request) {
          CALCULATE ORDER TOTALS
          ----------------------------------------------- */
       const subtotal = cart.reduce((sum: number, item) => {
+        const productType = item.productType as string;
+        if (productType === "installation") {
+          return sum + (Number(item.price_each) || 0) * (Number(item.quantity) || 1);
+        }
+        if (productType === "wood_plank") {
+          return sum + (Number(item.price_per_box) || 0) * (Number(item.boxes) || 0);
+        }
         return sum + (Number(item.price_per_m2) || 0) * (Number(item.m2) || 0);
       }, 0);
 
@@ -170,6 +240,33 @@ export async function POST(req: Request) {
       }
 
       console.log("✅ Order + Items successfully saved:", order.id);
+
+      // Send notification emails
+      try {
+        const emailPayload = {
+          id: order.id,
+          order_ref: order.order_ref,
+          customer_name: customerName || "",
+          customer_email: customerEmail || "",
+          subtotal,
+          vat,
+          shipping_cost: shippingCost,
+          total,
+          items: itemsToInsert.map((i) => ({
+            title: i.title,
+            finish: i.finish ?? undefined,
+            m2: i.m2,
+            quantity: i.quantity,
+          })),
+        };
+
+        await Promise.allSettled([
+          sendAdminOrderEmail(emailPayload),
+          sendOrderConfirmationEmail(emailPayload),
+        ]);
+      } catch (emailErr) {
+        console.error("⚠️ Email notification error (non-fatal):", emailErr);
+      }
 
       return NextResponse.json({ received: true });
     } catch (err) {

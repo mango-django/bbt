@@ -1,16 +1,13 @@
 // app/api/orders/get-order/route.ts
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  
-});
-
-const supabase = supabaseAdmin();
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {});
 
 export async function POST(req: Request) {
   try {
+    const supabase = supabaseAdmin();
     const { session_id, order_id } = await req.json();
 
     if (!session_id && !order_id) {
@@ -41,8 +38,8 @@ export async function POST(req: Request) {
       });
     }
 
-    // Verify Stripe session exists
-    const session = await stripe.checkout.sessions.retrieve(session_id);
+    // Verify Stripe session exists (throws if invalid)
+    await stripe.checkout.sessions.retrieve(session_id);
 
     // Fetch order
     const { data: order, error: orderError } = await supabase
