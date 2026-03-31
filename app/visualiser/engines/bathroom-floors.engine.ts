@@ -222,7 +222,7 @@ const TILES: FloorTileProduct[] = [
     sku: "BEL-VER-CRE",
     floorImage: "/visualiser/25-popular-bathroom-floors-tiles/bathroom-floor-creed-grey.webp",
     thumbnail: "/visualiser/bathroom/thumbnails/creed_grey.webp",
-    productUrl: "https://bellosbespoketiles.co.uk/products/creed-grey-600x600",
+    productUrl: "https://bellosbespoketiles.co.uk/products/creed-600x600",
   },
   {
     id: "curton-beige",
@@ -236,7 +236,7 @@ const TILES: FloorTileProduct[] = [
     sku: "BEL-VER-CUR",
     floorImage: "/visualiser/25-popular-bathroom-floors-tiles/bathroom-floor-curton-beige.webp",
     thumbnail: "/visualiser/bathroom/thumbnails/curton_beige.webp",
-    productUrl: "https://bellosbespoketiles.co.uk/products/curton-beige-600x600",
+    productUrl: "https://bellosbespoketiles.co.uk/products/curton-beige-298x600",
   },
   {
     id: "medicea-marble",
@@ -324,7 +324,7 @@ const TILES: FloorTileProduct[] = [
   },
   {
     id: "sanders-polished",
-    name: "Sanders /polished",
+    name: "Sanders Polished",
     brand: "Bellos",
     colour: "Dark Grey",
     finishes: "Polished",
@@ -334,7 +334,7 @@ const TILES: FloorTileProduct[] = [
     sku: "BEL-VER-SAG",
     floorImage: "/visualiser/25-popular-bathroom-floors-tiles/bathroom-floor-sanders-gloss.webp",
     thumbnail: "/visualiser/bathroom/thumbnails/sanders_dark_grey_polished.webp",
-    productUrl: "https://bellosbespoketiles.co.uk/products/sanderson-dark-grey-polished-600x600",
+    productUrl: "https://bellosbespoketiles.co.uk/products/sanders-light-grey-600x600",
   },
   {
     id: "sanders-matt",
@@ -348,7 +348,7 @@ const TILES: FloorTileProduct[] = [
     sku: "BEL-VER-SAM",
     floorImage: "/visualiser/25-popular-bathroom-floors-tiles/bathroom-floor-sanders-matt.webp",
     thumbnail: "/visualiser/bathroom/thumbnails/sanders_light_grey_matt.webp",
-    productUrl: "https://bellosbespoketiles.co.uk/products/sanderson-light-grey-matt-600x600",
+    productUrl: "https://bellosbespoketiles.co.uk/products/sanders-light-grey-600x600",
   },
   {
     id: "surface-2-0-sand",
@@ -376,7 +376,7 @@ const TILES: FloorTileProduct[] = [
     sku: "BEL-VER-VEN",
     floorImage: "/visualiser/25-popular-bathroom-floors-tiles/bathroom-floor-venus_emerald.webp",
     thumbnail: "/visualiser/bathroom/thumbnails/venus_emerald.webp",
-    productUrl: "https://bellosbespoketiles.co.uk/products/venus-emerald-600x600",
+    productUrl: "https://bellosbespoketiles.co.uk/products/venus-600x600",
   },
 ];
 
