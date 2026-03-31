@@ -43,7 +43,7 @@ function SpecRow({ label, value }: { label: string; value: any }) {
   );
 }
 
-export default function ProductPageClient({ product, sortedImages }: any) {
+export default function ProductPageClient({ product, sortedImages, relatedProducts = [] }: any) {
   const { addItem } = useCart();
 
   const num = (value: any) => {
@@ -328,6 +328,67 @@ export default function ProductPageClient({ product, sortedImages }: any) {
           </div>
         </div>
       </div>
+
+      {/* You May Also Like */}
+      {relatedProducts.length > 0 && (
+        <div className="border-t border-[#E8E5E0] bg-white">
+          <div className="max-w-[1400px] mx-auto px-6 sm:px-8 py-16">
+            <div className="flex items-center gap-4 mb-10">
+              <div className="flex-1 h-px bg-[#E8E5E0]" />
+              <h2 className="text-[11px] tracking-[0.3em] uppercase text-[#9A7A5E] font-medium shrink-0">
+                You May Also Like
+              </h2>
+              <div className="flex-1 h-px bg-[#E8E5E0]" />
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+              {relatedProducts.map((rp: any) => {
+                const imgs = Array.isArray(rp.product_images)
+                  ? [...rp.product_images].sort(
+                      (a: any, b: any) =>
+                        (a?.sort_order ?? 999) - (b?.sort_order ?? 999)
+                    )
+                  : [];
+                const img = imgs[0]?.url || "/hero-placeholder.jpg";
+                const rpSlug = (rp.slug || rp.id || "").trim();
+                const href = rpSlug
+                  ? `/products/${encodeURIComponent(rpSlug)}`
+                  : "#";
+
+                return (
+                  <Link key={rp.id} href={href} className="group block">
+                    <div
+                      className="relative w-full overflow-hidden bg-[#EEECE9]"
+                      style={{ aspectRatio: "4 / 5" }}
+                    >
+                      <img
+                        src={img}
+                        alt={rp.title ?? ""}
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                      />
+                    </div>
+                    <div className="mt-3 px-0.5">
+                      {rp.dimension_string && (
+                        <p className="text-[10px] tracking-[0.2em] uppercase text-[#9A7A5E] mb-1">
+                          {rp.dimension_string}
+                        </p>
+                      )}
+                      <p className="text-sm text-[#1A1A1A] font-light leading-snug tracking-wide">
+                        {rp.title || "Untitled product"}
+                      </p>
+                      {rp.price_per_m2 && (
+                        <p className="mt-1 text-xs text-[#6B6B6B] tracking-wide">
+                          £{rp.price_per_m2} / m²
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

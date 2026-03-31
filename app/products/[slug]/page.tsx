@@ -61,7 +61,61 @@ export default async function ProductPage({
       )
     : [];
 
+  /* --------------------------------------------------
+     RELATED PRODUCTS — size variants or same colour
+     -------------------------------------------------- */
+  let relatedProducts: any[] = [];
+
+  // Strip trailing dimension patterns (e.g. "600x600", "300 x 600") to get base name
+  const baseName = product.title
+    ?.replace(/\s*\d+\s*[x×]\s*\d+\s*/gi, "")
+    .trim();
+
+  // 1) Try size variants: same base name, different product
+  if (baseName && baseName.length >= 3) {
+    const { data: sizeVariants } = await admin
+      .from("products")
+      .select(selectFields)
+      .eq("status", "active")
+      .neq("id", product.id)
+      .ilike("title", `${baseName}%`)
+      .order("sort_order", { foreignTable: "product_images", ascending: true })
+      .limit(4);
+
+    if (sizeVariants && sizeVariants.length > 0) {
+      relatedProducts = sizeVariants;
+    }
+  }
+
+  // 2) Fallback: same colour category
+  if (relatedProducts.length === 0) {
+    const colors: string[] = Array.isArray(product.color)
+      ? product.color
+      : product.color
+      ? [product.color]
+      : [];
+
+    if (colors.length > 0) {
+      const { data: colourMatches } = await admin
+        .from("products")
+        .select(selectFields)
+        .eq("status", "active")
+        .neq("id", product.id)
+        .overlaps("color", colors)
+        .order("sort_order", { foreignTable: "product_images", ascending: true })
+        .limit(3);
+
+      if (colourMatches) {
+        relatedProducts = colourMatches;
+      }
+    }
+  }
+
   return (
-    <ProductPageClient product={product} sortedImages={sortedImages} />
+    <ProductPageClient
+      product={product}
+      sortedImages={sortedImages}
+      relatedProducts={relatedProducts}
+    />
   );
 }
