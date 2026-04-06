@@ -93,6 +93,20 @@ export default function Footer() {
 
         </div>
       </div>
+
+      <div className="border-t border-[#e6e6e6] py-4">
+        <p className="text-center text-[10px] tracking-[0.15em] text-[#b0b0b0]">
+          Developed by{" "}
+          <a
+            href="https://builtweb.co.uk"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-[#6b6b6b] transition-colors"
+          >
+            BuiltWeb
+          </a>
+        </p>
+      </div>
     </footer>
   );
 }
