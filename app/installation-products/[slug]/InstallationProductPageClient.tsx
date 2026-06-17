@@ -64,7 +64,7 @@ export default function InstallationProductPageClient({
     normalizedImages.find((img) => img.url)?.url ||
     product?.main_image ||
     product?.image ||
-    "/hero-placeholder.jpg";
+    undefined;
 
   /* ----------------------------------------------
      ADD TO CART (installation format)

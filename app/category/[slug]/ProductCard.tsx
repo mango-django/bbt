@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import ProductImage from "@/components/ProductImage";
 
 export default function ProductCard({ product }: { product: any }) {
   const productImages = Array.isArray(product.product_images)
@@ -9,7 +10,7 @@ export default function ProductCard({ product }: { product: any }) {
   const sortedImages = [...productImages].sort(
     (a, b) => (a?.sort_order ?? 999) - (b?.sort_order ?? 999)
   );
-  const mainImage = sortedImages[0]?.url || "/hero-placeholder.jpg";
+  const mainImage = sortedImages[0]?.url ?? null;
 
   const size = product.dimension_string as string | null;
   const price = product.price_per_m2 as string | null;
@@ -24,7 +25,7 @@ export default function ProductCard({ product }: { product: any }) {
         className="relative w-full overflow-hidden bg-[#EEECE9]"
         style={{ aspectRatio: "4 / 5" }}
       >
-        <img
+        <ProductImage
           src={mainImage}
           alt={product.title ?? ""}
           className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"

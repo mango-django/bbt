@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCart } from "@/app/context/CartContext";
 import ProductGallery from "@/components/ProductGallery";
 import ProductCalculator from "@/components/ProductCalculator";
+import ProductImage from "@/components/ProductImage";
 
 function Chevron() {
   return (
@@ -349,7 +350,7 @@ export default function ProductPageClient({ product, sortedImages, relatedProduc
                         (a?.sort_order ?? 999) - (b?.sort_order ?? 999)
                     )
                   : [];
-                const img = imgs[0]?.url || "/hero-placeholder.jpg";
+                const img = imgs[0]?.url ?? null;
                 const rpSlug = (rp.slug || rp.id || "").trim();
                 const href = rpSlug
                   ? `/products/${encodeURIComponent(rpSlug)}`
@@ -361,7 +362,7 @@ export default function ProductPageClient({ product, sortedImages, relatedProduc
                       className="relative w-full overflow-hidden bg-[#EEECE9]"
                       style={{ aspectRatio: "4 / 5" }}
                     >
-                      <img
+                      <ProductImage
                         src={img}
                         alt={rp.title ?? ""}
                         className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"

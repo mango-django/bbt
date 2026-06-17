@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import ProductImage from "@/components/ProductImage";
 
 export default function WoodPlankCard({ plank }: { plank: any }) {
   const images = Array.isArray(plank.images) ? plank.images : [];
-  const mainImage = images[0] || "/hero-placeholder.jpg";
+  const mainImage = images[0] ?? null;
   const slug = plank.slug?.trim() || plank.id;
   const href = slug ? `/wood-planks/${encodeURIComponent(slug)}` : "#";
 
@@ -16,7 +17,7 @@ export default function WoodPlankCard({ plank }: { plank: any }) {
         className="relative w-full overflow-hidden bg-[#EEECE9]"
         style={{ aspectRatio: "4 / 5" }}
       >
-        <img
+        <ProductImage
           src={mainImage}
           alt={plank.title}
           className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
