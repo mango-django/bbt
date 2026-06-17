@@ -1,18 +1,12 @@
+import { cache } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { SITE_URL, SITE_NAME } from "@/lib/site";
+import JsonLd from "@/components/JsonLd";
 import ProductPageClient from "./ProductPageClient";
 
-export default async function ProductPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
-  const decodedSlug = decodeURIComponent(slug);
-  const slugWithSpaces = decodedSlug.replace(/-/g, " ");
-  const admin = supabaseAdmin();
-
-  const selectFields = `
+const selectFields = `
       *,
       product_images (
         id,
@@ -20,6 +14,12 @@ export default async function ProductPage({
         sort_order
       )
     `;
+
+// Cached per-request so generateMetadata and the page share one DB query.
+const getProduct = cache(async function getProduct(slug: string) {
+  const decodedSlug = decodeURIComponent(slug);
+  const slugWithSpaces = decodedSlug.replace(/-/g, " ");
+  const admin = supabaseAdmin();
 
   const fetchProduct = async (column: string, value: string) => {
     if (!value) return null;
@@ -33,10 +33,67 @@ export default async function ProductPage({
     return data;
   };
 
-  let product =
+  return (
     (await fetchProduct("slug", decodedSlug)) ||
     (await fetchProduct("slug", slugWithSpaces)) ||
-    (await fetchProduct("id", decodedSlug));
+    (await fetchProduct("id", decodedSlug))
+  );
+});
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const product = await getProduct(slug);
+
+  if (!product) {
+    return { title: "Product Not Found" };
+  }
+
+  // meta_title (when set) is already a complete title — use `absolute` so the
+  // layout's "%s | Bellos Bespoke Tiles" template doesn't double the brand.
+  const baseTitle =
+    product.meta_title ||
+    `${product.title}${product.material ? ` ${product.material}` : ""} Tiles`;
+  const title = product.meta_title
+    ? baseTitle
+    : `${baseTitle} | ${SITE_NAME}`;
+  const description =
+    product.meta_description ||
+    (product.description
+      ? String(product.description).slice(0, 155)
+      : `Buy ${product.title} from ${SITE_NAME}. Premium bespoke tiles delivered across the UK.`);
+  const image =
+    product.og_image_url ||
+    (Array.isArray(product.product_images) && product.product_images[0]?.url) ||
+    undefined;
+  const canonical = `/products/${encodeURIComponent(product.slug || slug)}`;
+
+  return {
+    title: { absolute: title },
+    description,
+    alternates: { canonical },
+    openGraph: {
+      type: "website",
+      title,
+      description,
+      url: `${SITE_URL}${canonical}`,
+      images: image ? [{ url: image }] : undefined,
+    },
+  };
+}
+
+export default async function ProductPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const admin = supabaseAdmin();
+
+  const product = await getProduct(slug);
 
   if (!product) {
     return (
@@ -111,11 +168,45 @@ export default async function ProductPage({
     }
   }
 
+  const productImages = sortedImages
+    .map((img) => img?.url)
+    .filter(Boolean) as string[];
+  const price = Number(product.price_per_m2) || Number(product.price_per_tile) || 0;
+
+  const productJsonLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.title,
+    description: product.description || `${product.title} from ${SITE_NAME}.`,
+    sku: product.display_id || product.id,
+    ...(product.brand ? { brand: { "@type": "Brand", name: product.brand } } : {}),
+    ...(product.material ? { material: product.material } : {}),
+    ...(productImages.length ? { image: productImages } : {}),
+    ...(price > 0
+      ? {
+          offers: {
+            "@type": "Offer",
+            url: `${SITE_URL}/products/${encodeURIComponent(product.slug || slug)}`,
+            priceCurrency: "GBP",
+            price: price.toFixed(2),
+            availability:
+              (product.boxes_in_stock ?? 1) > 0
+                ? "https://schema.org/InStock"
+                : "https://schema.org/OutOfStock",
+            seller: { "@type": "Organization", name: SITE_NAME },
+          },
+        }
+      : {}),
+  };
+
   return (
-    <ProductPageClient
-      product={product}
-      sortedImages={sortedImages}
-      relatedProducts={relatedProducts}
-    />
+    <>
+      <JsonLd data={productJsonLd} />
+      <ProductPageClient
+        product={product}
+        sortedImages={sortedImages}
+        relatedProducts={relatedProducts}
+      />
+    </>
   );
 }

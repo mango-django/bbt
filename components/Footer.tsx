@@ -57,10 +57,21 @@ export default function Footer() {
             <h3 className="text-xs tracking-[0.2em] text-[#1c1c1c] font-[inherit]">
               CUSTOMER INFO
             </h3>
-            <p>Bespoke Tile Service</p>
-            <p>Delivery &amp; Returns</p>
-            <p>Terms and Conditions</p>
-            <p>Privacy Policy</p>
+            <Link href="/visualiser" className="block hover:text-[#1c1c1c]">
+              Bespoke Tile Service
+            </Link>
+            <Link href="/delivery-returns" className="block hover:text-[#1c1c1c]">
+              Delivery &amp; Returns
+            </Link>
+            <Link
+              href="/terms-and-conditions"
+              className="block hover:text-[#1c1c1c]"
+            >
+              Terms and Conditions
+            </Link>
+            <Link href="/privacy-policy" className="block hover:text-[#1c1c1c]">
+              Privacy Policy
+            </Link>
           </div>
 
           <div className="space-y-4 text-sm">

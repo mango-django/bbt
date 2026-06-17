@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { EMAIL_FROM, EMAIL_REPLY_TO, SITE_URL } from "./config";
 
 type OrderNotification = {
   id: string;
@@ -25,7 +26,7 @@ export async function sendAdminOrderEmail(order: OrderNotification) {
   }
 
   const resend = new Resend(process.env.RESEND_API_KEY);
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://bellos-tiles.com";
+  const siteUrl = SITE_URL;
 
   const itemRows = order.items
     .map(
@@ -42,8 +43,9 @@ export async function sendAdminOrderEmail(order: OrderNotification) {
     .join("");
 
   await resend.emails.send({
-    from: "Bellos Tiles <orders@bellos-tiles.com>",
+    from: EMAIL_FROM,
     to: adminEmail,
+    replyTo: order.customer_email || EMAIL_REPLY_TO,
     subject: `New Order Received — ${order.order_ref}`,
     html: `
       <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;">

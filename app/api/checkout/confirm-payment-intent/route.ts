@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { supabaseAdmin } from "@/lib/supabase/admin";
+import { markOrderPaidAndNotify } from "@/lib/email/notifyOrderPaid";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {});
 
@@ -33,22 +33,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const supabase = supabaseAdmin();
-    const { error } = await supabase
-      .from("orders")
-      .update({
-        status: "paid",
-        payment_status: "paid",
-        stripe_payment_intent: paymentIntent.id,
-      })
-      .eq("id", orderId);
-
-    if (error) {
-      return NextResponse.json(
-        { error: error.message || "Failed to update order" },
-        { status: 500 }
-      );
-    }
+    // Mark paid + send emails exactly once (the webhook may also call this).
+    await markOrderPaidAndNotify(orderId, { paymentIntentId: paymentIntent.id });
 
     return NextResponse.json({ success: true });
   } catch (err) {

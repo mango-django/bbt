@@ -1,6 +1,13 @@
 import { Resend } from "resend";
+import { EMAIL_FROM, EMAIL_REPLY_TO } from "./config";
 
-export async function sendOrderDispatchedEmail(order: any) {
+type DispatchedOrder = {
+  customer_email?: string;
+  public_order_id?: string;
+  tracking_number?: string;
+};
+
+export async function sendOrderDispatchedEmail(order: DispatchedOrder) {
   // 🛑 Local dev / Resend not configured
   if (!process.env.RESEND_API_KEY) {
     console.log(
@@ -17,8 +24,9 @@ export async function sendOrderDispatchedEmail(order: any) {
   }
 
   await resend.emails.send({
-    from: "Bellos Tiles <orders@bellos-tiles.com>",
+    from: EMAIL_FROM,
     to: order.customer_email,
+    replyTo: EMAIL_REPLY_TO,
     subject: `Your order ${order.public_order_id} has been dispatched`,
     html: `
       <h2>Your order is on the way 🚚</h2>

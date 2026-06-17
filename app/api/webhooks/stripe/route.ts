@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { sendAdminOrderEmail } from "@/lib/email/sendAdminOrderEmail";
 import { sendOrderConfirmationEmail } from "@/lib/email/sendOrderConfirmationEmail";
+import { markOrderPaidAndNotify } from "@/lib/email/notifyOrderPaid";
 
 export const dynamic = "force-dynamic";
 
@@ -38,51 +39,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ received: true });
     }
 
-    const { error: updateError } = await supabase
-      .from("orders")
-      .update({
-        status: "paid",
-        payment_status: "paid",
-        stripe_payment_intent: paymentIntent.id,
-      })
-      .eq("id", orderId);
-
-    if (updateError) {
-      console.error("❌ Failed to mark order paid from payment intent:", updateError);
-      return new NextResponse("Webhook handler failed", { status: 500 });
-    }
-
-    console.log("✅ Order marked paid via payment_intent.succeeded:", orderId);
-
-    // Send notification emails (non-blocking — don't fail the webhook)
     try {
-      const { data: paidOrder } = await supabase
-        .from("orders")
-        .select("*")
-        .eq("id", orderId)
-        .single();
-
-      if (paidOrder) {
-        const items = Array.isArray(paidOrder.items) ? paidOrder.items as { title: string; finish?: string; m2?: number; quantity?: number }[] : [];
-        const emailPayload = {
-          id: paidOrder.id,
-          order_ref: paidOrder.order_ref,
-          customer_name: paidOrder.customer_name,
-          customer_email: paidOrder.customer_email,
-          subtotal: paidOrder.subtotal,
-          vat: paidOrder.vat,
-          shipping_cost: paidOrder.shipping_cost,
-          total: paidOrder.total,
-          items,
-        };
-
-        await Promise.allSettled([
-          sendAdminOrderEmail(emailPayload),
-          sendOrderConfirmationEmail(emailPayload),
-        ]);
-      }
-    } catch (emailErr) {
-      console.error("⚠️ Email notification error (non-fatal):", emailErr);
+      // Marks paid + sends emails exactly once (deduped with the sync path).
+      await markOrderPaidAndNotify(orderId, { paymentIntentId: paymentIntent.id });
+    } catch (err) {
+      console.error("❌ Failed to process payment_intent.succeeded:", err);
+      return new NextResponse("Webhook handler failed", { status: 500 });
     }
 
     return NextResponse.json({ received: true });
@@ -99,54 +61,11 @@ export async function POST(req: Request) {
       const orderId = metadata.order_id;
 
       if (orderId) {
-        const { error: updateError } = await supabase
-          .from("orders")
-          .update({
-            status: "paid",
-            stripe_session_id: session.id,
-            stripe_payment_intent: session.payment_intent as string,
-            payment_status: "paid",
-          })
-          .eq("id", orderId);
-
-        if (updateError) {
-          console.error("❌ Failed to update order:", updateError);
-          throw updateError;
-        }
-
-        console.log("✅ Order marked paid:", orderId);
-
-        // Send notification emails
-        try {
-          const { data: paidOrder } = await supabase
-            .from("orders")
-            .select("*")
-            .eq("id", orderId)
-            .single();
-
-          if (paidOrder) {
-            const items = Array.isArray(paidOrder.items) ? paidOrder.items as { title: string; finish?: string; m2?: number; quantity?: number }[] : [];
-            const emailPayload = {
-              id: paidOrder.id,
-              order_ref: paidOrder.order_ref,
-              customer_name: paidOrder.customer_name,
-              customer_email: paidOrder.customer_email,
-              subtotal: paidOrder.subtotal,
-              vat: paidOrder.vat,
-              shipping_cost: paidOrder.shipping_cost,
-              total: paidOrder.total,
-              items,
-            };
-
-            await Promise.allSettled([
-              sendAdminOrderEmail(emailPayload),
-              sendOrderConfirmationEmail(emailPayload),
-            ]);
-          }
-        } catch (emailErr) {
-          console.error("⚠️ Email notification error (non-fatal):", emailErr);
-        }
-
+        // Marks paid + sends emails exactly once (deduped with the sync path).
+        await markOrderPaidAndNotify(orderId, {
+          sessionId: session.id,
+          paymentIntentId: session.payment_intent as string,
+        });
         return NextResponse.json({ received: true });
       }
 

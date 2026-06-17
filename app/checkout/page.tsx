@@ -99,21 +99,16 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
+      // Guest checkout: a logged-in user is linked to the order, but signing in
+      // is NOT required to buy. This keeps the flow low-friction.
       const supabase = supabaseBrowser();
       const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        localStorage.setItem("checkout_redirect", "/checkout");
-        window.dispatchEvent(new CustomEvent("open-auth-modal"));
-        alert("Please sign in or create an account to complete checkout.");
-        return;
-      }
 
       const res = await fetch("/api/checkout/create-payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          customer: { user_id: user.id, fullName, email, phone, address1, address2, city, postcode },
+          customer: { user_id: user?.id ?? null, fullName, email, phone, address1, address2, city, postcode },
           cart,
           shippingCost,
         }),

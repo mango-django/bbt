@@ -19,12 +19,17 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
-    if (!customer?.user_id) {
+
+    // Guest checkout is allowed: user_id is optional. Require the basics needed
+    // to fulfil and contact the customer about the order.
+    if (!customer?.email || !customer?.fullName) {
       return NextResponse.json(
-        { error: "User must be logged in to checkout" },
-        { status: 401 }
+        { error: "Name and email are required to checkout" },
+        { status: 400 }
       );
     }
+
+    const userId: string | null = customer.user_id ?? null;
 
     /* -------------------------------
        CALCULATE TOTALS (SERVER-SIDE)
@@ -59,7 +64,7 @@ export async function POST(req: Request) {
        CREATE OR REUSE DRAFT ORDER
     -------------------------------- */
     const draftPayload = {
-      user_id: customer.user_id as string,
+      user_id: userId,
       customer_name: customer.fullName || "",
       customer_email: customer.email || "",
       customer_phone: customer.phone || "",
@@ -77,15 +82,19 @@ export async function POST(req: Request) {
       payment_status: "unpaid",
     };
 
-    const { data: existingDraft } = await supabase
-      .from("orders")
-      .select("id")
-      .eq("user_id", customer.user_id)
-      .eq("status", "draft")
-      .eq("payment_status", "unpaid")
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    // Only reuse an existing draft for signed-in users; guests always get a
+    // fresh order (there is no stable identifier to match a guest's draft).
+    const { data: existingDraft } = userId
+      ? await supabase
+          .from("orders")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("status", "draft")
+          .eq("payment_status", "unpaid")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+      : { data: null };
 
     let order: { id: string } | null = null;
     let orderError: { message: string } | null = null;
@@ -95,7 +104,7 @@ export async function POST(req: Request) {
         .from("orders")
         .update(draftPayload)
         .eq("id", existingDraft.id)
-        .eq("user_id", customer.user_id)
+        .eq("user_id", userId)
         .select("id")
         .single();
       order = data;
@@ -130,7 +139,7 @@ export async function POST(req: Request) {
       receipt_email: customer.email || undefined,
       metadata: {
         order_id: order.id,
-        user_id: customer?.user_id || "guest",
+        user_id: userId || "guest",
         vat: vat.toFixed(2),
         shipping: shippingCost.toFixed(2),
       },
@@ -141,8 +150,7 @@ export async function POST(req: Request) {
       .update({
         stripe_payment_intent: paymentIntent.id,
       })
-      .eq("id", order.id)
-      .eq("user_id", customer.user_id);
+      .eq("id", order.id);
 
     if (orderUpdateError) {
       console.error("ORDER PAYMENT INTENT LINK ERROR:", orderUpdateError);

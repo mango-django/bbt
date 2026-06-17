@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { EMAIL_FROM, EMAIL_REPLY_TO } from "./config";
 
 type OrderConfirmation = {
   order_ref: string;
@@ -40,8 +41,9 @@ export async function sendOrderConfirmationEmail(order: OrderConfirmation) {
   const firstName = order.customer_name?.split(" ")[0] ?? "there";
 
   await resend.emails.send({
-    from: "Bellos Tiles <orders@bellos-tiles.com>",
+    from: EMAIL_FROM,
     to: order.customer_email,
+    replyTo: EMAIL_REPLY_TO,
     subject: `Order Confirmed — ${order.order_ref}`,
     html: `
       <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:600px;margin:0 auto;">
