@@ -19,23 +19,47 @@ type Product = {
   created_at: string | null;
 };
 
+const PAGE_SIZE = 500;
+
 export default function ProductsPage() {
   const [allProducts, setAllProducts] = useState<Product[]>([]); // Master list
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]); // Display list
+  const [total, setTotal] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
+  const hasMore = total !== null && allProducts.length < total;
+
+  function applySearch(products: Product[], term: string) {
+    const normalized = term.trim().toLowerCase();
+    if (!normalized) return products;
+    return products.filter((p) =>
+      p.title?.toLowerCase().includes(normalized) ||
+      p.display_id?.toLowerCase().includes(normalized) ||
+      p.supplier_id?.toLowerCase().includes(normalized)
+    );
+  }
+
+  async function fetchPage(offset: number): Promise<{ products: Product[]; total: number; hasMore: boolean }> {
+    const res = await fetch(`/api/admin/products/list?offset=${offset}&limit=${PAGE_SIZE}`, {
+      cache: "no-store",
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json?.error || "Failed to load products");
+    return { products: json.products ?? [], total: json.total ?? 0, hasMore: !!json.hasMore };
+  }
+
   useEffect(() => {
     async function loadProducts() {
       try {
-        const res = await fetch("/api/admin/products/list", { cache: "no-store" });
-        const json = await res.json();
-        if (!res.ok) throw new Error(json?.error || "Failed to load products");
-        
-        setAllProducts(json.products ?? []);
-        setFilteredProducts(json.products ?? []);
+        const page = await fetchPage(0);
+        setAllProducts(page.products);
+        setFilteredProducts(page.products);
+        setTotal(page.total);
       } catch (err: any) {
         setError(err?.message || "Failed to load products");
       } finally {
@@ -45,19 +69,34 @@ export default function ProductsPage() {
     loadProducts();
   }, []);
 
+  async function loadMore(all = false) {
+    if (loadingMore) return;
+    setLoadingMore(true);
+    setError(null);
+    try {
+      let current = allProducts;
+      let more = true;
+      do {
+        const page = await fetchPage(current.length);
+        // de-dupe on id in case rows shifted between requests
+        const seen = new Set(current.map((p) => p.id));
+        current = [...current, ...page.products.filter((p) => !seen.has(p.id))];
+        setAllProducts(current);
+        setFilteredProducts(applySearch(current, searchTerm));
+        setTotal(page.total);
+        more = page.hasMore;
+      } while (all && more);
+    } catch (err: any) {
+      setError(err?.message || "Failed to load more products");
+    } finally {
+      setLoadingMore(false);
+    }
+  }
+
   // SEARCH LOGIC
   const handleSearch = (term: string) => {
-    const normalized = term.trim().toLowerCase();
-    if (!term.trim()) {
-      setFilteredProducts(allProducts);
-    } else {
-      const filtered = allProducts.filter((p) =>
-        p.title?.toLowerCase().includes(normalized) ||
-        p.display_id?.toLowerCase().includes(normalized) ||
-        p.supplier_id?.toLowerCase().includes(normalized)
-      );
-      setFilteredProducts(filtered);
-    }
+    setSearchTerm(term);
+    setFilteredProducts(applySearch(allProducts, term));
   };
 
   async function handleDelete(productId: string) {
@@ -73,6 +112,7 @@ export default function ProductsPage() {
       // Remove from both lists
       setAllProducts((prev) => prev.filter((p) => p.id !== productId));
       setFilteredProducts((prev) => prev.filter((p) => p.id !== productId));
+      setTotal((prev) => (prev === null ? prev : prev - 1));
     } catch (err: any) {
       setDeleteError(err?.message || "Failed to delete product");
     } finally {
@@ -105,7 +145,11 @@ export default function ProductsPage() {
         </div>
         <div className="flex items-center gap-4">
           <span className="text-sm text-gray-600">
-            {allProducts.length} total
+            {total === null
+              ? `${allProducts.length} loaded`
+              : hasMore
+                ? `${allProducts.length} of ${total} loaded`
+                : `${total} total`}
           </span>
           <Link
             href="/admin/products/new"
@@ -118,11 +162,26 @@ export default function ProductsPage() {
 
       {/* 🔍 SEARCH COMPONENT WITH DROPDOWN */}
       {!loading && (
-        <ProductSearch 
-          products={allProducts} 
-          onSearch={handleSearch}
-          onSelect={(id) => { /* Handle direct selection if needed */ }}
-        />
+        <div className="space-y-2">
+          <ProductSearch
+            products={allProducts}
+            onSearch={handleSearch}
+            onSelect={(id) => { /* Handle direct selection if needed */ }}
+          />
+          {hasMore && searchTerm.trim() && (
+            <p className="text-xs text-amber-700">
+              Searching the {allProducts.length} loaded products only —{" "}
+              <button
+                onClick={() => loadMore(true)}
+                disabled={loadingMore}
+                className="underline hover:text-amber-900 disabled:opacity-50"
+              >
+                load all {total}
+              </button>{" "}
+              to search everything.
+            </p>
+          )}
+        </div>
       )}
 
       {loading && <p>Loading products…</p>}
@@ -176,6 +235,25 @@ export default function ProductsPage() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {!loading && hasMore && !searchTerm.trim() && (
+        <div className="flex items-center justify-center gap-4 py-2">
+          <button
+            onClick={() => loadMore(false)}
+            disabled={loadingMore}
+            className="rounded-md border border-gray-300 bg-white px-6 py-2 font-medium text-gray-700 shadow-sm hover:bg-gray-50 disabled:opacity-50"
+          >
+            {loadingMore ? "Loading…" : `Load ${Math.min(PAGE_SIZE, (total ?? 0) - allProducts.length)} more`}
+          </button>
+          <button
+            onClick={() => loadMore(true)}
+            disabled={loadingMore}
+            className="text-sm text-blue-600 hover:underline disabled:opacity-50"
+          >
+            Load all {total}
+          </button>
         </div>
       )}
     </div>
