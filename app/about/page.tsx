@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+
+export const metadata: Metadata = {
+  title: "About Us",
+  description:
+    "The story behind Bellos Bespoke Tiles — a UK retailer of premium porcelain, ceramic and natural stone tiles, delivered nationwide.",
+  alternates: { canonical: "/about" },
+};
 
 export default function AboutPage() {
   return (

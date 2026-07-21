@@ -1,6 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { supabaseServer } from "@/lib/supabase/server";
+
+export const metadata: Metadata = {
+  title: "Tile Installation Products",
+  description:
+    "Adhesives, grouts, levelling systems and everything you need to install tiles — delivered across the UK by Bellos Bespoke Tiles.",
+  alternates: { canonical: "/installation-products" },
+};
 import InstallationProductCard from "@/app/installation-products/components/InstallationProductCard";
 import InstallationFilters from "@/app/installation-products/components/InstallationFilters";
 import InstallationSearch from "@/app/installation-products/components/InstallationSearch";

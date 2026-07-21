@@ -1,8 +1,16 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import WoodPlankCard from "./WoodPlankCard";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  title: "Wood Effect Planks",
+  description:
+    "Shop premium wood-effect planks — the warmth of timber with the durability of porcelain. UK-wide delivery from Bellos Bespoke Tiles.",
+  alternates: { canonical: "/wood-planks" },
+};
 
 export default async function WoodPlanksPage() {
   const supabase = supabaseAdmin();

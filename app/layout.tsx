@@ -16,7 +16,9 @@ export const metadata: Metadata = {
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
-  alternates: { canonical: "/" },
+  // NOTE: no `alternates.canonical` here — a layout-level canonical cascades
+  // to every page that doesn't set its own, pointing them all at the
+  // homepage. Each page declares its own canonical instead.
   robots: {
     index: true,
     follow: true,
@@ -29,11 +31,13 @@ export const metadata: Metadata = {
     description: SITE_DESCRIPTION,
     url: SITE_URL,
     locale: "en_GB",
+    images: [{ url: "/og-default.jpg", width: 1200, height: 630, alt: SITE_NAME }],
   },
   twitter: {
     card: "summary_large_image",
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
+    images: ["/og-default.jpg"],
   },
 };
 

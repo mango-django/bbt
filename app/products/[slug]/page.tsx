@@ -4,6 +4,14 @@ import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { SITE_URL, SITE_NAME } from "@/lib/site";
 import JsonLd from "@/components/JsonLd";
+import {
+  breadcrumbJsonLd,
+  MERCHANT_RETURN_POLICY,
+  offerShippingDetails,
+  priceValidUntil,
+  schemaAvailability,
+  SELLER,
+} from "@/lib/seo";
 import ProductPageClient from "./ProductPageClient";
 
 const selectFields = `
@@ -173,6 +181,13 @@ export default async function ProductPage({
     .filter(Boolean) as string[];
   const price = Number(product.price_per_m2) || Number(product.price_per_tile) || 0;
 
+  const colors: string[] = Array.isArray(product.color)
+    ? product.color
+    : product.color
+    ? [product.color]
+    : [];
+  const soldPerM2 = Number(product.price_per_m2) > 0;
+
   const productJsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -181,6 +196,8 @@ export default async function ProductPage({
     sku: product.display_id || product.id,
     ...(product.brand ? { brand: { "@type": "Brand", name: product.brand } } : {}),
     ...(product.material ? { material: product.material } : {}),
+    ...(colors.length ? { color: colors.join("/") } : {}),
+    ...(product.dimension_string ? { size: product.dimension_string } : {}),
     ...(productImages.length ? { image: productImages } : {}),
     ...(price > 0
       ? {
@@ -189,19 +206,43 @@ export default async function ProductPage({
             url: `${SITE_URL}/products/${encodeURIComponent(product.slug || slug)}`,
             priceCurrency: "GBP",
             price: price.toFixed(2),
-            availability:
-              (product.boxes_in_stock ?? 1) > 0
-                ? "https://schema.org/InStock"
-                : "https://schema.org/OutOfStock",
-            seller: { "@type": "Organization", name: SITE_NAME },
+            // Tiles are priced per m² on the page — make the reference unit
+            // explicit so Google reads it as a unit price, not a pack price.
+            ...(soldPerM2
+              ? {
+                  priceSpecification: {
+                    "@type": "UnitPriceSpecification",
+                    price: price.toFixed(2),
+                    priceCurrency: "GBP",
+                    referenceQuantity: {
+                      "@type": "QuantitativeValue",
+                      value: 1,
+                      unitCode: "MTK", // square metre
+                    },
+                  },
+                }
+              : {}),
+            priceValidUntil: priceValidUntil(),
+            itemCondition: "https://schema.org/NewCondition",
+            availability: schemaAvailability(product.boxes_in_stock),
+            shippingDetails: offerShippingDetails(product.box_weight_kg),
+            hasMerchantReturnPolicy: MERCHANT_RETURN_POLICY,
+            seller: SELLER,
           },
         }
       : {}),
   };
 
+  const breadcrumbs = breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "All Tiles", path: "/tiles" },
+    { name: product.title },
+  ]);
+
   return (
     <>
       <JsonLd data={productJsonLd} />
+      <JsonLd data={breadcrumbs} />
       <ProductPageClient
         product={product}
         sortedImages={sortedImages}

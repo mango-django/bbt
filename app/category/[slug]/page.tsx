@@ -1,5 +1,10 @@
+import { cache } from "react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { SITE_URL, SITE_NAME } from "@/lib/site";
+import JsonLd from "@/components/JsonLd";
+import { breadcrumbJsonLd } from "@/lib/seo";
 import FiltersSidebar from "./FiltersSidebar";
 import FiltersDrawer from "./FiltersDrawer";
 import CategoryTopBar from "./CategoryTopBar";
@@ -9,6 +14,64 @@ type CategoryPageProps = {
   params: Promise<{ slug: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
+
+// Cached per-request so generateMetadata and the page share one query.
+const getCategory = cache(async function getCategory(slug: string) {
+  const { data } = await supabaseAdmin()
+    .from("categories")
+    .select("*")
+    .eq("slug", slug)
+    .maybeSingle();
+  return data;
+});
+
+// Query params that change the product set produce near-duplicate pages —
+// canonicalise them to the clean category URL and keep them out of the index.
+const FILTER_PARAMS = [
+  "material",
+  "color",
+  "finish",
+  "application",
+  "suitable_room",
+  "indoor_outdoor",
+  "size",
+  "minPrice",
+  "maxPrice",
+  "sort",
+  "show",
+  "grid",
+];
+
+export async function generateMetadata({
+  params,
+  searchParams,
+}: CategoryPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const search = await searchParams;
+  const category = await getCategory(slug);
+
+  const name =
+    category?.name ??
+    slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  const title = `${name} Tiles`;
+  const description = `Shop our ${name.toLowerCase()} tile collection — premium porcelain, ceramic and natural stone tiles with UK-wide delivery from ${SITE_NAME}.`;
+  const canonical = `/category/${encodeURIComponent(slug)}`;
+  const isFiltered = FILTER_PARAMS.some((p) => search[p] != null);
+
+  return {
+    title,
+    description,
+    alternates: { canonical },
+    ...(isFiltered ? { robots: { index: false, follow: true } } : {}),
+    openGraph: {
+      type: "website",
+      title: `${title} | ${SITE_NAME}`,
+      description,
+      url: `${SITE_URL}${canonical}`,
+      ...(category?.image_url ? { images: [{ url: category.image_url }] } : {}),
+    },
+  };
+}
 
 export default async function CategoryPage({
   params,
@@ -27,11 +90,7 @@ export default async function CategoryPage({
   /* -------------------------------------------
       FETCH CATEGORY
   --------------------------------------------*/
-  const { data: category } = await admin
-    .from("categories")
-    .select("*")
-    .eq("slug", slug)
-    .maybeSingle();
+  const category = await getCategory(slug);
 
   /* -------------------------------------------
       BASE PRODUCT QUERY
@@ -113,8 +172,34 @@ export default async function CategoryPage({
   const { data: products } = await query;
   const heading = category?.name ?? slug.replace(/-/g, " ");
 
+  const collectionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: `${heading} Tiles`,
+    url: `${SITE_URL}/category/${encodeURIComponent(slug)}`,
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: (products ?? [])
+        .filter((p) => p.slug)
+        .map((p, i) => ({
+          "@type": "ListItem",
+          position: i + 1,
+          url: `${SITE_URL}/products/${encodeURIComponent(p.slug)}`,
+          name: p.title,
+        })),
+    },
+  };
+
+  const breadcrumbs = breadcrumbJsonLd([
+    { name: "Home", path: "/" },
+    { name: "All Tiles", path: "/tiles" },
+    { name: heading },
+  ]);
+
   return (
     <div className="min-h-screen bg-[#FAFAF8]">
+      <JsonLd data={collectionJsonLd} />
+      <JsonLd data={breadcrumbs} />
 
       {/* ---- Category breadcrumb banner ---- */}
       <div className="border-b border-[#E8E5E0] bg-white">

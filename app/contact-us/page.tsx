@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+
+export const metadata: Metadata = {
+  title: "Contact Us",
+  description:
+    "Get in touch with Bellos Bespoke Tiles — questions about tiles, samples, orders or delivery. Call +44 7498 359060 or email sales@bellosbespoketiles.co.uk.",
+  alternates: { canonical: "/contact-us" },
+};
 
 export default function ContactUsPage() {
   return (

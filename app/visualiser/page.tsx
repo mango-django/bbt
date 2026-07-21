@@ -1,4 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "3D Tile Visualiser",
+  description:
+    "See our tiles in a photorealistic 3D room before you buy — try floor and wall combinations in the Bellos tile visualiser.",
+  alternates: { canonical: "/visualiser" },
+};
 
 export default function VisualiserHubPage() {
   return (

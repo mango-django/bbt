@@ -1,7 +1,12 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 /* ---------------------------------------------
    TYPES
