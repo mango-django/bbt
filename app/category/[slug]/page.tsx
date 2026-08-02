@@ -114,6 +114,8 @@ export default async function CategoryPage({
   /* -------------------------------------------
       STRUCTURED FILTERS
   --------------------------------------------*/
+  if (search.q) query = query.ilike("title", `%${search.q}%`);
+
   if (search.material) query = query.eq("material", search.material);
 
   if (search.color) {

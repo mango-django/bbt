@@ -203,6 +203,124 @@ export default async function Home() {
       </section>
 
       {/* ====================================================
+          SPECIAL OFFERS — ends 30 August 2026
+      ==================================================== */}
+      {new Date() < new Date("2026-08-31T00:00:00+01:00") && (
+        <section className="max-w-[1400px] mx-auto px-4 sm:px-8 mt-16 sm:mt-24">
+          <div className="flex items-center justify-between mb-10">
+            <div className="flex items-center gap-4">
+              <div className="w-8 h-px bg-[#9A7A5E]" />
+              <p className="text-[11px] tracking-[0.35em] uppercase text-[#9A7A5E]">
+                Special Offers
+              </p>
+            </div>
+            <p className="text-[11px] tracking-[0.25em] uppercase text-[#1A1A1A]/50">
+              Ends 30 August
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+            {/* Carrara Gioia Polished 1200x1200 */}
+            <Link
+              href="/products/carrara-gioia-polished-1200x1200"
+              className="group flex flex-col overflow-hidden"
+            >
+              <div className="relative h-[260px] sm:h-[340px] overflow-hidden bg-[#EEECE9]">
+                <Image
+                  src="https://hfkkeuqfncuxunbttvzm.supabase.co/storage/v1/object/public/product-images/ef960aac-b292-4ff0-a310-2f78f5184e8a/1784522435663-p13685-carrara-gioia-polished-porcelain-1200x1200mm_rs1.jpg"
+                  alt="Carrara Gioia Polished Italian porcelain tile 1200x1200mm"
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                />
+                <div className="absolute top-5 left-5 bg-[#9A7A5E] text-white text-[11px] tracking-[0.3em] uppercase px-4 py-2">
+                  Special Offer
+                </div>
+              </div>
+              <div className="bg-[#151515] text-white flex-1 flex flex-col px-8 py-8 sm:px-10">
+                <h2 className="text-2xl sm:text-3xl font-thin tracking-wider leading-tight mb-3">
+                  Italian Carrara
+                  <br />
+                  <span className="italic text-white/60">Polished Porcelain</span>
+                </h2>
+                <p className="text-sm text-white/60 leading-relaxed mb-6">
+                  Large-format 1200 × 1200mm polished porcelain with classic
+                  Carrara veining — a mirror-smooth, architectural finish for
+                  floors and walls.
+                </p>
+                <div className="mt-auto">
+                  <div className="flex items-baseline gap-3 mb-1">
+                    <span className="text-3xl sm:text-4xl font-thin tracking-wide">
+                      £26.94
+                    </span>
+                    <span className="text-sm text-white/60 tracking-wide">
+                      per m² inc. VAT
+                    </span>
+                  </div>
+                  <p className="text-sm text-white/40 tracking-wide mb-6">
+                    Was <span className="line-through">£54.59</span> per m² —
+                    save over 50%
+                  </p>
+                  <span className="inline-flex items-center gap-3 text-xs tracking-widest uppercase text-white/80 group-hover:text-white transition-colors">
+                    Shop the Offer
+                    <span className="w-6 h-px bg-white/40 group-hover:w-10 transition-all duration-300" />
+                  </span>
+                </div>
+              </div>
+            </Link>
+
+            {/* Bosco range */}
+            <Link
+              href="/category/bosco?q=Bosco"
+              className="group flex flex-col overflow-hidden"
+            >
+              <div className="relative h-[260px] sm:h-[340px] overflow-hidden bg-[#EEECE9]">
+                <Image
+                  src="https://hfkkeuqfncuxunbttvzm.supabase.co/storage/v1/object/public/product-images/4400aa4c-1e1d-4327-a3ae-87919a6a22b7/1784522424385-p15092-bosco_grey_porcelain_wall_floor_tile_600x600mm_rs1_2.jpg"
+                  alt="Bosco matt porcelain wall and floor tiles"
+                  fill
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                />
+                <div className="absolute top-5 left-5 bg-[#9A7A5E] text-white text-[11px] tracking-[0.3em] uppercase px-4 py-2">
+                  Special Offer
+                </div>
+              </div>
+              <div className="bg-[#151515] text-white flex-1 flex flex-col px-8 py-8 sm:px-10">
+                <h2 className="text-2xl sm:text-3xl font-thin tracking-wider leading-tight mb-3">
+                  The Bosco Range
+                  <br />
+                  <span className="italic text-white/60">Matt Porcelain</span>
+                </h2>
+                <p className="text-sm text-white/60 leading-relaxed mb-6">
+                  Warm, natural matt porcelain for walls and floors — four
+                  colours across two sizes, all reduced for four weeks.
+                </p>
+                <div className="mt-auto">
+                  <div className="flex items-baseline gap-3 mb-1">
+                    <span className="text-3xl sm:text-4xl font-thin tracking-wide">
+                      £14.95
+                    </span>
+                    <span className="text-sm text-white/60 tracking-wide">
+                      per m² inc. VAT
+                    </span>
+                  </div>
+                  <p className="text-sm text-white/40 tracking-wide mb-6">
+                    Was <span className="line-through">£18.98</span> per m² —
+                    save over 20%
+                  </p>
+                  <span className="inline-flex items-center gap-3 text-xs tracking-widest uppercase text-white/80 group-hover:text-white transition-colors">
+                    Shop the Range
+                    <span className="w-6 h-px bg-white/40 group-hover:w-10 transition-all duration-300" />
+                  </span>
+                </div>
+              </div>
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {/* ====================================================
           CATEGORIES — editorial tile grid
       ==================================================== */}
       <section className="max-w-[1400px] mx-auto px-4 sm:px-8 mt-16 sm:mt-24">
