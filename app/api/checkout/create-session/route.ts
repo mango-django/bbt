@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { generateOrderRef } from "@/lib/utils/orderRef";
+import { resolveCartShipping } from "@/lib/shipping-server";
+import { tileBoxes, tileLinePrice } from "@/lib/pricing";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {});
 
@@ -115,7 +117,8 @@ export async function POST(req: Request) {
     const subtotal = cart.reduce((sum, item) => {
       switch (item.productType) {
         case "tile":
-          return sum + (item.price_per_m2 ?? 0) * (item.m2 ?? 0);
+          // Whole boxes — must match the cart display and the calculator
+          return sum + tileLinePrice(item);
         case "wood_plank":
           return sum + (item.price_per_box ?? 0) * (item.boxes ?? 0);
         case "installation":
@@ -126,17 +129,24 @@ export async function POST(req: Request) {
     }, 0);
 
     const vat = subtotal * 0.2;
-    const total = subtotal + vat + shippingCost;
 
-    const shippingWeight = cart.reduce((sum, item) => {
-      if (item.productType === "installation") {
-        return sum + (Number(item.boxWeight) || 0) * (Number(item.quantity) || 1);
-      }
-      const boxes = Math.ceil(
-        (Number(item.m2) || 0) / (Number(item.coverage) || 1)
+    // Delivery is recomputed here from product weights in the database — the
+    // client-supplied figure is display-only. If ours is higher, bounce the
+    // request so the customer sees the correct price before paying.
+    const shipping = await resolveCartShipping(supabase, cart);
+    if (shipping.cost > shippingCost + 0.01) {
+      return NextResponse.json(
+        {
+          error:
+            "Delivery cost has been updated — please return to your basket and recalculate delivery before checking out.",
+          shippingCost: shipping.cost,
+        },
+        { status: 409 }
       );
-      return sum + boxes * (Number(item.boxWeight) || 0);
-    }, 0);
+    }
+
+    const shippingWeight = shipping.weight;
+    const total = subtotal + vat + shipping.cost;
 
     /* -------------------------------
        CREATE OR REUSE DRAFT ORDER
@@ -152,7 +162,7 @@ export async function POST(req: Request) {
       postcode: customer.postcode,
       subtotal,
       vat,
-      shipping_cost: shippingCost,
+      shipping_cost: shipping.cost,
       shipping_weight: shippingWeight,
       total,
       items: cart,
@@ -225,11 +235,7 @@ export async function POST(req: Request) {
           unitAmount = Math.round(Number(item.price_per_box) * 100);
           quantity = Math.max(1, packs);
         } else {
-          unitAmount = Math.round(
-            (Number(item.price_per_m2) || 0) *
-              (Number(item.m2) || 0) *
-              100
-          );
+          unitAmount = Math.round(tileLinePrice(item) * 100);
         }
 
         if (!Number.isFinite(unitAmount) || unitAmount <= 0) {
@@ -238,13 +244,20 @@ export async function POST(req: Request) {
 
         const imageUrl = getStripeSafeImageUrl(item.image);
 
+        const baseName = item.finish
+          ? `${item.title} (${item.finish})`
+          : item.title;
+        const boxCount =
+          item.productType === "tile" ? tileBoxes(item.m2, item.coverage) : 0;
+
         return {
           price_data: {
             currency: "gbp",
             product_data: {
-              name: item.finish
-                ? `${item.title} (${item.finish})`
-                : item.title,
+              name:
+                boxCount > 0
+                  ? `${baseName} — ${boxCount} box${boxCount === 1 ? "" : "es"}`
+                  : baseName,
               ...(imageUrl ? { images: [imageUrl] } : {}),
             },
             unit_amount: unitAmount,
@@ -258,7 +271,7 @@ export async function POST(req: Request) {
       price_data: {
         currency: "gbp",
         product_data: { name: "Delivery" },
-        unit_amount: Math.round(shippingCost * 100),
+        unit_amount: Math.round(shipping.cost * 100),
       },
       quantity: 1,
     });

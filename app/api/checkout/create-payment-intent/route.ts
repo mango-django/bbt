@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { generateOrderRef } from "@/lib/utils/orderRef";
+import { resolveCartShipping } from "@/lib/shipping-server";
+import { tileLinePrice } from "@/lib/pricing";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {});
 
@@ -31,6 +33,8 @@ export async function POST(req: Request) {
 
     const userId: string | null = customer.user_id ?? null;
 
+    const supabase = supabaseAdmin();
+
     /* -------------------------------
        CALCULATE TOTALS (SERVER-SIDE)
     -------------------------------- */
@@ -41,24 +45,29 @@ export async function POST(req: Request) {
       if (item.productType === "wood_plank") {
         return sum + (Number(item.price_per_box) || 0) * (Number(item.boxes) || 0);
       }
-      return sum + (Number(item.price_per_m2) || 0) * (Number(item.m2) || 0);
+      // Tiles: whole boxes — must match the cart display and the calculator
+      return sum + tileLinePrice(item);
     }, 0);
 
     const vat = subtotal * 0.2;
-    const total = subtotal + vat + shippingCost;
 
-    const shippingWeight = cart.reduce((sum: number, item: Record<string, unknown>) => {
-      if (item.productType === "installation") {
-        return sum + (Number(item.boxWeight) || 0) * (Number(item.quantity) || 1);
-      }
-      if (item.productType === "wood_plank") {
-        return sum + (Number(item.boxes) || 0) * (Number(item.boxWeight) || 0);
-      }
-      const boxes = Math.ceil((Number(item.m2) || 0) / (Number(item.coverage) || 1));
-      return sum + boxes * (Number(item.boxWeight) || 0);
-    }, 0);
+    // Delivery is recomputed here from product weights in the database — the
+    // client-supplied figure is display-only. If ours is higher, bounce the
+    // request so the customer sees the correct price before paying.
+    const shipping = await resolveCartShipping(supabase, cart);
+    if (shipping.cost > shippingCost + 0.01) {
+      return NextResponse.json(
+        {
+          error:
+            "Delivery cost has been updated — please return to your basket and recalculate delivery before checking out.",
+          shippingCost: shipping.cost,
+        },
+        { status: 409 }
+      );
+    }
 
-    const supabase = supabaseAdmin();
+    const shippingWeight = shipping.weight;
+    const total = subtotal + vat + shipping.cost;
 
     /* -------------------------------
        CREATE OR REUSE DRAFT ORDER
@@ -74,7 +83,7 @@ export async function POST(req: Request) {
       postcode: customer.postcode || "",
       subtotal,
       vat,
-      shipping_cost: shippingCost,
+      shipping_cost: shipping.cost,
       shipping_weight: shippingWeight,
       total,
       items: cart,
@@ -141,7 +150,7 @@ export async function POST(req: Request) {
         order_id: order.id,
         user_id: userId || "guest",
         vat: vat.toFixed(2),
-        shipping: shippingCost.toFixed(2),
+        shipping: shipping.cost.toFixed(2),
       },
     });
 

@@ -8,6 +8,8 @@ import {
   useMemo,
   startTransition,
 } from "react";
+import { supabaseBrowser } from "@/lib/supabase/client";
+import { tileBoxes, tileLinePrice } from "@/lib/pricing";
 
 /* ==========================================================
    CART ITEM TYPE — TILE + INSTALLATION + WOOD PLANK
@@ -69,6 +71,12 @@ export type CartContextType = {
 
 const CartContext = createContext<CartContextType | null>(null);
 
+type ProductWeightRow = {
+  id: string;
+  box_weight_kg: number | null;
+  box_coverage_m2: number | null;
+};
+
 /* ==========================================================
    PROVIDER
    ========================================================== */
@@ -91,6 +99,51 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
     }
   }, []);
+
+  /* ----------------------------------------------------------
+     REFRESH TILE WEIGHTS FROM DB
+     Saved carts carry the box weight from when the item was
+     added — refresh so delivery is always priced on current
+     product data.
+  ---------------------------------------------------------- */
+  useEffect(() => {
+    const tileIds = Array.from(
+      new Set(
+        cart
+          .filter((item) => item.productType === "tile" && !item.boxWeight)
+          .map((item) => item.product_id)
+      )
+    );
+    if (tileIds.length === 0) return;
+
+    let cancelled = false;
+
+    supabaseBrowser()
+      .from("products")
+      .select("id, box_weight_kg, box_coverage_m2")
+      .in("id", tileIds)
+      .then(({ data }: { data: ProductWeightRow[] | null }) => {
+        if (cancelled || !data?.length) return;
+        const byId = new Map(data.map((p) => [p.id, p]));
+        setCart((prev) =>
+          prev.map((item) => {
+            const fresh =
+              item.productType === "tile" ? byId.get(item.product_id) : null;
+            if (!fresh) return item;
+            return {
+              ...item,
+              boxWeight: Number(fresh.box_weight_kg) || item.boxWeight,
+              coverage: Number(fresh.box_coverage_m2) || item.coverage,
+            };
+          })
+        );
+      });
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cart.length]);
 
 /* ----------------------------------------------------------
    SAVE LOCAL STORAGE (SAFARI SAFE – DEBOUNCED)
@@ -160,7 +213,7 @@ useEffect(() => {
     return cart.reduce((sum, item) => {
       switch (item.productType) {
         case "tile":
-          return sum + (item.price_per_m2 ?? 0) * (item.m2 ?? 0);
+          return sum + tileLinePrice(item);
 
         case "wood_plank":
           return sum + (item.price_per_box ?? 0) * (item.boxes ?? 0);
@@ -181,7 +234,7 @@ useEffect(() => {
     return cart.reduce((sum, item) => {
       switch (item.productType) {
         case "tile": {
-          const boxes = Math.ceil((item.m2 ?? 0) / (item.coverage ?? 1));
+          const boxes = tileBoxes(item.m2, item.coverage);
           return sum + boxes * (item.boxWeight ?? 0);
         }
 

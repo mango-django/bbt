@@ -6,6 +6,7 @@ import Link from "next/link";
 import { FiPlus, FiMinus, FiTrash2 } from "react-icons/fi";
 import { useCart } from "@/app/context/CartContext";
 import { findShippingRate, isValidUKPostcode } from "@/lib/shipping";
+import { tileBoxes, tileLinePrice } from "@/lib/pricing";
 
 export default function CartPage() {
   const { cart, updateItem, removeItem, total, totalWeight } = useCart();
@@ -111,7 +112,9 @@ export default function CartPage() {
             {cart.map((item) => {
               const isTile = item.productType === "tile";
               const isWoodPlank = item.productType === "wood_plank";
-              const boxesRequired = (isTile || isWoodPlank)
+              const boxesRequired = isTile
+                ? tileBoxes(item.m2, item.coverage)
+                : isWoodPlank
                 ? Math.ceil((item.m2 ?? 0) / (item.coverage ?? 1))
                 : 0;
               const currentQty = isTile ? (item.m2 ?? 1) : item.quantity;
@@ -121,7 +124,7 @@ export default function CartPage() {
                 ? item.price_per_box
                 : (item.price_each ?? 0);
               const lineTotal = isTile
-                ? (item.price_per_m2 ?? 0) * (item.m2 ?? 0)
+                ? tileLinePrice(item)
                 : isWoodPlank
                 ? (item.price_per_box ?? 0) * boxesRequired
                 : (item.price_each ?? 0) * item.quantity;
@@ -195,7 +198,7 @@ export default function CartPage() {
                             <FiPlus size={10} />
                           </button>
                         </div>
-                        {(isTile || isWoodPlank) && (
+                        {(isTile || isWoodPlank) && boxesRequired > 0 && (
                           <p className="text-[10px] text-[#9A7A5E] mt-1">{boxesRequired} pack{boxesRequired !== 1 ? "s" : ""}</p>
                         )}
                       </div>

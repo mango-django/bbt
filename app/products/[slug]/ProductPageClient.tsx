@@ -66,7 +66,7 @@ export default function ProductPageClient({ product, sortedImages, relatedProduc
   const coveragePerBox =
     Number(product.box_coverage_m2) ||
     Number(product.m2_per_box) ||
-    0.01;
+    0;
 
   /* ----------------------------------------------
      DERIVED PRICING (fallback when DB is null)
@@ -143,6 +143,7 @@ export default function ProductPageClient({ product, sortedImages, relatedProduc
       finish: selectedFinish,
       productType: "tile",
       price_per_m2: Number(product.price_per_m2),
+      price_per_box: pricePerBox ?? undefined,
       m2: calculatedM2,
       coverage: coveragePerBox,
       boxWeight: weightPerBox,

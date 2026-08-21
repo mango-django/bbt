@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useCart } from "@/app/context/CartContext";
 import { useRouter } from "next/navigation";
 import { findShippingRate, isValidUKPostcode } from "@/lib/shipping";
+import { tileBoxes, tileLinePrice } from "@/lib/pricing";
 import { supabaseBrowser } from "@/lib/supabase/client";
 import { Elements } from "@stripe/react-stripe-js";
 import { stripePromise } from "@/lib/stripe";
@@ -228,11 +229,13 @@ export default function CheckoutPage() {
               {cart.map((item, i) => {
                 const isTile = item.productType === "tile";
                 const isWoodPlank = item.productType === "wood_plank";
-                const boxesRequired = (isTile || isWoodPlank)
+                const boxesRequired = isTile
+                  ? tileBoxes(item.m2, item.coverage)
+                  : isWoodPlank
                   ? Math.ceil((item.m2 ?? 0) / (item.coverage ?? 1))
                   : 0;
                 const lineTotal = isTile
-                  ? (item.price_per_m2 ?? 0) * (item.m2 ?? 0)
+                  ? tileLinePrice(item)
                   : isWoodPlank
                   ? (item.price_per_box ?? 0) * boxesRequired
                   : (item.price_each ?? 0) * item.quantity;
@@ -251,7 +254,7 @@ export default function CheckoutPage() {
                       {item.finish && <p className="text-[10px] text-[#6B6B6B]">Finish: {item.finish}</p>}
                       <p className="text-[10px] text-[#9A7A5E] mt-1">
                         {isTile
-                          ? `${item.m2} m²`
+                          ? `${item.m2} m²${boxesRequired > 0 ? ` · ${boxesRequired} box${boxesRequired !== 1 ? "es" : ""}` : ""}`
                           : isWoodPlank
                           ? `${boxesRequired} pack${boxesRequired !== 1 ? "s" : ""}`
                           : `Qty: ${item.quantity}`}

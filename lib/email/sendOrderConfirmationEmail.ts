@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { EMAIL_FROM, EMAIL_REPLY_TO } from "./config";
+import { tileBoxes } from "@/lib/pricing";
 
 type OrderConfirmation = {
   order_ref: string;
@@ -9,8 +10,22 @@ type OrderConfirmation = {
   vat: number;
   shipping_cost: number;
   total: number;
-  items: { title: string; finish?: string; m2?: number; quantity?: number }[];
+  items: {
+    title: string;
+    finish?: string;
+    m2?: number;
+    coverage?: number;
+    quantity?: number;
+  }[];
 };
+
+function itemQuantityLabel(item: OrderConfirmation["items"][number]): string {
+  if (!item.m2) return `Qty: ${item.quantity ?? 1}`;
+  const boxes = tileBoxes(item.m2, item.coverage);
+  return boxes > 0
+    ? `${boxes} box${boxes === 1 ? "" : "es"} (${item.m2} m&sup2;)`
+    : `${item.m2} m&sup2;`;
+}
 
 export async function sendOrderConfirmationEmail(order: OrderConfirmation) {
   if (!process.env.RESEND_API_KEY) {
@@ -32,7 +47,7 @@ export async function sendOrderConfirmationEmail(order: OrderConfirmation) {
             ${item.title}${item.finish ? ` <span style="color:#9A7A5E;">(${item.finish})</span>` : ""}
           </td>
           <td style="padding:8px 12px;border-bottom:1px solid #E8E5E0;font-size:14px;color:#1A1A1A;text-align:right;">
-            ${item.m2 ? `${item.m2} m&sup2;` : `Qty: ${item.quantity ?? 1}`}
+            ${itemQuantityLabel(item)}
           </td>
         </tr>`
     )
