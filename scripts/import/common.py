@@ -8,7 +8,7 @@ FILES = Path(__file__).resolve().parents[2] / "Files"
 STAGING = FILES / "staging"
 STAGING.mkdir(exist_ok=True)
 
-MARKUP = 1.3
+MARKUP = 1.4
 
 CATEGORY_IDS = {
     "Bathroom": "f692962a-be72-403f-b6f0-d1dcebe3c56c",
@@ -75,7 +75,7 @@ def r2(v):
 
 
 def retail(cost):
-    """Vendor trade price -> site price (30% markup)."""
+    """Vendor trade price -> site price (40% markup)."""
     return None if cost is None else round(cost * MARKUP, 2)
 
 
