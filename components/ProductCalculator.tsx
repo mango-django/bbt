@@ -26,6 +26,7 @@ export default function ProductCalculator({ product, onChange }: Props) {
   const [wastage, setWastage] = useState(10);
   const [tiles, setTiles] = useState(0);
   const [boxes, setBoxes] = useState(0);
+  const [totalPrice, setTotalPrice] = useState(0);
 
   function compute() {
     const areaNum = Number(area);
@@ -34,12 +35,43 @@ export default function ProductCalculator({ product, onChange }: Props) {
     const wastagePct = Math.max(0, Number(wastage) || 0);
     const requiredM2 = areaNum * (1 + wastagePct / 100);
     const tilesPerBox = Number(product.tiles_per_box) || 0;
-    const m2PerBox = Number(product.box_coverage_m2) || 1;
-    const calculatedBoxes = Math.ceil(requiredM2 / m2PerBox);
-    const calculatedTiles = tilesPerBox > 0 ? calculatedBoxes * tilesPerBox : 0;
+    const m2PerBox = Number(product.box_coverage_m2) || 0;
+    const tileAreaM2 =
+      Number(product.tile_width_mm) > 0 && Number(product.tile_height_mm) > 0
+        ? (Number(product.tile_width_mm) * Number(product.tile_height_mm)) / 1_000_000
+        : 0;
+
+    let calculatedBoxes = 0;
+    let calculatedTiles = 0;
+
+    if (m2PerBox > 0) {
+      calculatedBoxes = Math.ceil(requiredM2 / m2PerBox);
+      calculatedTiles =
+        tilesPerBox > 0
+          ? calculatedBoxes * tilesPerBox
+          : tileAreaM2 > 0
+          ? Math.ceil(requiredM2 / tileAreaM2)
+          : 0;
+    } else if (tileAreaM2 > 0) {
+      // No box data on this product — work from the tile size instead
+      calculatedTiles = Math.ceil(requiredM2 / tileAreaM2);
+    }
+
+    const boxPrice = Number(product.price_per_box) || 0;
+    const tilePrice = Number(product.price_per_tile) || 0;
+    const m2Price = Number(product.price_per_m2) || 0;
+    const calculatedTotal =
+      calculatedBoxes > 0 && boxPrice > 0
+        ? calculatedBoxes * boxPrice
+        : calculatedTiles > 0 && tilePrice > 0
+        ? calculatedTiles * tilePrice
+        : m2Price > 0
+        ? requiredM2 * m2Price
+        : 0;
 
     setBoxes(calculatedBoxes);
     setTiles(calculatedTiles);
+    setTotalPrice(calculatedTotal);
 
     if (onChange) {
       onChange({
@@ -56,8 +88,7 @@ export default function ProductCalculator({ product, onChange }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [area, wastage, product.tiles_per_box, product.box_coverage_m2]);
 
-  const totalPrice = boxes * (Number(product.price_per_box) || 0);
-  const hasResults = boxes > 0;
+  const hasResults = boxes > 0 || tiles > 0 || totalPrice > 0;
 
   return (
     <div className="border border-[#E8E5E0] bg-white p-6">
@@ -121,11 +152,11 @@ export default function ProductCalculator({ product, onChange }: Props) {
         <div className="mt-6 pt-5 border-t border-[#E8E5E0] grid grid-cols-3 gap-4 text-center">
           <div>
             <p className="text-[10px] tracking-widest uppercase text-[#9A7A5E] mb-1.5">Tiles</p>
-            <p className="text-xl font-light text-[#1A1A1A]">{tiles}</p>
+            <p className="text-xl font-light text-[#1A1A1A]">{tiles > 0 ? tiles : "—"}</p>
           </div>
           <div>
             <p className="text-[10px] tracking-widest uppercase text-[#9A7A5E] mb-1.5">Boxes</p>
-            <p className="text-xl font-light text-[#1A1A1A]">{boxes}</p>
+            <p className="text-xl font-light text-[#1A1A1A]">{boxes > 0 ? boxes : "—"}</p>
           </div>
           <div>
             <p className="text-[10px] tracking-widest uppercase text-[#9A7A5E] mb-1.5">Total</p>
