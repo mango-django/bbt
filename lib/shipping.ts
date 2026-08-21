@@ -5,22 +5,27 @@ export const SHIPPING_RATES = [
   { min: 2.01, max: 5, price: 8.99 },
   { min: 5.01, max: 10, price: 14.99 },
   { min: 10.01, max: 20, price: 19.99 },
-  { min: 21, max: 49, price: 30 },
-  { min: 50, max: 100, price: 60 },
+  { min: 20.01, max: 49, price: 30 },
+  { min: 49.01, max: 100, price: 60 },
   { min: 100.01, max: 99999, price: 90 },
 ];
 
-export function findShippingRate(weight: number): number | null {
-  if (weight <= 0) return SHIPPING_RATES[0]?.price ?? null;
+// Charged when an order's weight cannot be determined (missing product weight
+// data). Tiles are heavy pallet goods, so an unknown weight must never fall
+// into the lightest parcel bracket.
+export const UNKNOWN_WEIGHT_DELIVERY = 30;
 
+export function findShippingRate(weight: number): number | null {
+  if (!Number.isFinite(weight) || weight <= 0) return UNKNOWN_WEIGHT_DELIVERY;
+
+  // Brackets are ordered by max; take the first one the weight fits under so
+  // fractional weights between brackets can never fall through.
   for (const rate of SHIPPING_RATES) {
-    if (weight >= rate.min && weight <= rate.max) {
+    if (weight <= rate.max) {
       return rate.price;
     }
   }
 
-  // If we somehow miss every bracket (shouldn't happen), fall back to the
-  // highest defined price so the UI never shows a non-response.
   return SHIPPING_RATES[SHIPPING_RATES.length - 1]?.price ?? null;
 }
 
