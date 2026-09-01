@@ -4,14 +4,19 @@ import { useState, useEffect } from "react";
 import ImageUploader from "@/components/admin/ImageUploader";
 
 const PRODUCT_TYPES = [
+  "accessory",
   "adhesive",
+  "backer-board",
+  "cleaning",
   "grout",
-  "sealer",
-  "trim",
-  "tool",
   "heating",
   "levelling",
+  "matting",
   "primer",
+  "sealer",
+  "tool",
+  "trim",
+  "waterproofing",
 ] as const;
 type ProductType = (typeof PRODUCT_TYPES)[number];
 

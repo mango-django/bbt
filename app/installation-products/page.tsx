@@ -62,13 +62,38 @@ async function fetchInstallationProducts(params: Record<string, string | string[
   return data ?? [];
 }
 
+async function fetchFilterOptions() {
+  const supabase = await supabaseServer();
+
+  const { data, error } = await supabase
+    .from("installation_products")
+    .select("product_type, colour")
+    .ilike("status", "active");
+
+  if (error) {
+    console.error("Failed to load installation product filter options:", error);
+    return { productTypes: [], colours: [] };
+  }
+
+  const rows = data ?? [];
+  const productTypes = [...new Set(rows.map((row) => row.product_type).filter(Boolean))].sort();
+  const colours = [...new Set(rows.map((row) => row.colour).filter(Boolean))].sort(
+    // keep real colours alphabetical, push "N/A" to the end
+    (a, b) => (a === "N/A" ? 1 : b === "N/A" ? -1 : a.localeCompare(b))
+  );
+  return { productTypes, colours };
+}
+
 export default async function InstallationProductsPage({
   searchParams,
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
-  const products = await fetchInstallationProducts(params);
+  const [products, filterOptions] = await Promise.all([
+    fetchInstallationProducts(params),
+    fetchFilterOptions(),
+  ]);
 
   return (
     <div className="min-h-screen bg-[#FAFAF8]">
@@ -111,7 +136,10 @@ export default async function InstallationProductsPage({
               <InstallationSearch />
             </Suspense>
             <Suspense>
-              <InstallationFilters />
+              <InstallationFilters
+                productTypes={filterOptions.productTypes}
+                colours={filterOptions.colours}
+              />
             </Suspense>
           </div>
         </div>

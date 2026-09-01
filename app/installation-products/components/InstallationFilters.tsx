@@ -2,8 +2,13 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 
-const productTypes = ["adhesive", "grout", "sealer", "trim", "tool", "heating"];
-const colours = ["N/A", "White", "Black", "Grey", "Beige", "Silver", "Jasmine"];
+const fallbackProductTypes = ["adhesive", "grout", "sealer", "trim", "tool", "heating", "matting"];
+const fallbackColours = ["White", "Black", "Grey", "Beige", "Silver", "Jasmine", "N/A"];
+
+function typeLabel(type: string) {
+  const label = type.replace(/-/g, " ");
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
 
 function Chevron() {
   return (
@@ -44,9 +49,17 @@ function StyledSelect({
   );
 }
 
-export default function InstallationFilters() {
+export default function InstallationFilters({
+  productTypes,
+  colours,
+}: {
+  productTypes?: string[];
+  colours?: string[];
+}) {
   const router = useRouter();
   const params = useSearchParams();
+  const types = productTypes?.length ? productTypes : fallbackProductTypes;
+  const colourOptions = colours?.length ? colours : fallbackColours;
 
   function updateParam(key: string, value: string) {
     const query = new URLSearchParams(params.toString());
@@ -66,8 +79,8 @@ export default function InstallationFilters() {
           onChange={(e) => updateParam("type", e.target.value)}
         >
           <option value="">All</option>
-          {productTypes.map((t) => (
-            <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
+          {types.map((t) => (
+            <option key={t} value={t}>{typeLabel(t)}</option>
           ))}
         </StyledSelect>
       </div>
@@ -80,7 +93,7 @@ export default function InstallationFilters() {
           onChange={(e) => updateParam("colour", e.target.value)}
         >
           <option value="">All</option>
-          {colours.map((c) => (
+          {colourOptions.map((c) => (
             <option key={c} value={c}>{c}</option>
           ))}
         </StyledSelect>
