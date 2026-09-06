@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import LegalPage, { Section, Lead } from "@/components/LegalPage";
-import { SHIPPING_RATES } from "@/lib/shipping";
+import { SHIPPING_RATES, deliveryIncVat } from "@/lib/shipping";
 
 export const metadata: Metadata = {
   title: "Delivery & Returns",
@@ -14,7 +14,7 @@ export default function DeliveryReturnsPage() {
     <LegalPage
       title="Delivery & Returns"
       breadcrumb="Delivery & Returns"
-      lastUpdated="17 June 2026"
+      lastUpdated="6 September 2026"
     >
       <Lead>
         Everything you need to know about how we deliver your tiles, how much it
@@ -35,6 +35,7 @@ export default function DeliveryReturnsPage() {
               <tr className="bg-white text-left text-[10px] tracking-[0.2em] uppercase text-[#9A7A5E]">
                 <th className="px-4 py-3 font-medium">Order weight</th>
                 <th className="px-4 py-3 font-medium">Delivery charge</th>
+                <th className="px-4 py-3 font-medium">Inc. VAT</th>
               </tr>
             </thead>
             <tbody>
@@ -52,7 +53,8 @@ export default function DeliveryReturnsPage() {
                     className="border-t border-[#E8E5E0] text-[#4a4a4a]"
                   >
                     <td className="px-4 py-3">{band}</td>
-                    <td className="px-4 py-3">£{rate.price.toFixed(2)}</td>
+                    <td className="px-4 py-3">£{rate.price.toFixed(2)} + VAT</td>
+                    <td className="px-4 py-3">£{deliveryIncVat(rate.price).toFixed(2)}</td>
                   </tr>
                 );
               })}
@@ -60,7 +62,8 @@ export default function DeliveryReturnsPage() {
           </table>
         </div>
         <p className="mt-3 text-xs text-[#9A9A9A]">
-          Weights shown in kilograms. Deliveries to the Scottish Highlands,
+          Weights shown in kilograms. VAT at 20% is added to the delivery
+          charge at checkout. Deliveries to the Scottish Highlands,
           islands, Northern Ireland and other remote areas may incur an
           additional surcharge — we will contact you if so.
         </p>

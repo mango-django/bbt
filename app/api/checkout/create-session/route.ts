@@ -128,8 +128,6 @@ export async function POST(req: Request) {
       }
     }, 0);
 
-    const vat = subtotal * 0.2;
-
     // Delivery is recomputed here from product weights in the database — the
     // client-supplied figure is display-only. If ours is higher, bounce the
     // request so the customer sees the correct price before paying.
@@ -144,6 +142,9 @@ export async function POST(req: Request) {
         { status: 409 }
       );
     }
+
+    // Carriers charge VAT on delivery, so VAT applies to goods AND delivery.
+    const vat = (subtotal + shipping.cost) * 0.2;
 
     const shippingWeight = shipping.weight;
     const total = subtotal + vat + shipping.cost;

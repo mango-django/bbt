@@ -5,7 +5,7 @@
 // feed — mismatches there are the #1 cause of Shopping disapprovals.
 
 import { SITE_URL, SITE_NAME } from "@/lib/site";
-import { findShippingRate } from "@/lib/shipping";
+import { findShippingRate, deliveryIncVat } from "@/lib/shipping";
 
 /* ------------------------------------------------------------------ */
 /* Availability                                                        */
@@ -35,10 +35,13 @@ export function feedAvailability(boxesInStock: number | null | undefined): strin
 const HANDLING_DAYS = { min: 2, max: 5 };
 const TRANSIT_DAYS = { min: 1, max: 3 };
 
+// Returns the VAT-inclusive delivery price — Google requires the rate the
+// customer actually pays, and SHIPPING_RATES are ex-VAT.
 export function shippingRateForWeight(weightKg: number | null | undefined): number | null {
   const w = Number(weightKg);
   if (!Number.isFinite(w) || w <= 0) return null;
-  return findShippingRate(w);
+  const rate = findShippingRate(w);
+  return rate == null ? null : deliveryIncVat(rate);
 }
 
 // schema.org OfferShippingDetails for one unit (one box) delivered in GB.
@@ -48,7 +51,7 @@ export function offerShippingDetails(weightKg: number | null | undefined) {
     "@type": "OfferShippingDetails",
     shippingRate: {
       "@type": "MonetaryAmount",
-      value: rate ?? 6.99,
+      value: rate ?? deliveryIncVat(11.0),
       currency: "GBP",
     },
     shippingDestination: {

@@ -100,7 +100,8 @@ export async function POST(req: Request) {
         return sum + (Number(item.price_per_m2) || 0) * (Number(item.m2) || 0);
       }, 0);
 
-      const vat = subtotal * 0.2;
+      // Carriers charge VAT on delivery, so VAT applies to goods AND delivery.
+      const vat = (subtotal + shippingCost) * 0.2;
       const total = subtotal + vat + shippingCost;
 
       /* -----------------------------------------------

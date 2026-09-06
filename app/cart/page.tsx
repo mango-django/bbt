@@ -44,7 +44,13 @@ export default function CartPage() {
 
   const vat = total * 0.2;
   const beforeDelivery = total + vat;
-  const finalTotal = shippingCost !== null ? beforeDelivery + shippingCost : beforeDelivery;
+  // Delivery rates are ex-VAT (carriers charge VAT on delivery), so VAT is
+  // added to the delivery charge too — matching the checkout calculation.
+  const deliveryVat = shippingCost !== null ? shippingCost * 0.2 : 0;
+  const finalTotal =
+    shippingCost !== null
+      ? beforeDelivery + shippingCost + deliveryVat
+      : beforeDelivery;
 
   if (isEmpty) {
     return (
@@ -266,6 +272,7 @@ export default function CartPage() {
               {shippingCost !== null && (
                 <div className="mt-4 pt-4 border-t border-[#E8E5E0]">
                   <TotalRow label="Delivery" value={`£${shippingCost.toFixed(2)}`} />
+                  <TotalRow label="VAT on Delivery (20%)" value={`£${deliveryVat.toFixed(2)}`} />
                 </div>
               )}
             </div>

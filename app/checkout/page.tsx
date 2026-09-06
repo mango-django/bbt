@@ -72,9 +72,10 @@ export default function CheckoutPage() {
     setShippingCost(typeof rate === "number" ? rate : null);
   }, [postcode, totalWeight]);
 
-  const vat = total * 0.2;
-  const beforeDelivery = total + vat;
-  const finalTotal = shippingCost !== null ? beforeDelivery + shippingCost : beforeDelivery;
+  // VAT applies to goods and delivery (carriers charge VAT on delivery) —
+  // must match the server calculation in the checkout API routes.
+  const vat = (total + (shippingCost ?? 0)) * 0.2;
+  const finalTotal = total + (shippingCost ?? 0) + vat;
 
   function validateForm() {
     if (!fullName || !email || !phone || !address1 || !city || !postcode) {
@@ -269,11 +270,11 @@ export default function CheckoutPage() {
             {/* Totals */}
             <div className="bg-white border border-[#E8E5E0] px-5 py-4 mb-4">
               <SummaryRow label="Subtotal" value={`£${total.toFixed(2)}`} />
-              <SummaryRow label="VAT (20%)" value={`£${vat.toFixed(2)}`} />
               <SummaryRow
                 label="Delivery"
                 value={shippingCost !== null ? `£${shippingCost.toFixed(2)}` : "Enter postcode"}
               />
+              <SummaryRow label="VAT (20%)" value={`£${vat.toFixed(2)}`} />
             </div>
 
             {/* Grand total */}
