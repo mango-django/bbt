@@ -4,6 +4,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { generateOrderRef } from "@/lib/utils/orderRef";
 import { resolveCartShipping } from "@/lib/shipping-server";
 import { tileLinePrice } from "@/lib/pricing";
+import { PACKAGE_OFFERS, packageExVatPrice } from "@/lib/offers";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {});
 
@@ -33,13 +34,31 @@ export async function POST(req: Request) {
 
     const userId: string | null = customer.user_id ?? null;
 
+    // Package-offer prices and weights are defined server-side in
+    // lib/offers.ts — never trust the client's copy (stale localStorage
+    // carts, tampering).
+    for (const item of cart) {
+      if (item.productType !== "bundle") continue;
+      const offer = PACKAGE_OFFERS.find((o) => o.id === item.product_id);
+      if (!offer) {
+        return NextResponse.json(
+          {
+            error: `${item.title} is no longer available — please remove it from your basket.`,
+          },
+          { status: 400 }
+        );
+      }
+      item.price_each = packageExVatPrice(offer);
+      item.boxWeight = offer.totalWeightKg;
+    }
+
     const supabase = supabaseAdmin();
 
     /* -------------------------------
        CALCULATE TOTALS (SERVER-SIDE)
     -------------------------------- */
     const subtotal = cart.reduce((sum: number, item: Record<string, unknown>) => {
-      if (item.productType === "installation") {
+      if (item.productType === "installation" || item.productType === "bundle") {
         return sum + (Number(item.price_each) || 0) * (Number(item.quantity) || 1);
       }
       if (item.productType === "wood_plank") {

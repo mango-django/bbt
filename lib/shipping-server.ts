@@ -49,7 +49,9 @@ export async function resolveCartShipping(
   }
 
   const weight = cart.reduce((sum, item) => {
-    if (item.productType === "installation") {
+    // Bundles carry the whole package weight in boxWeight (fixed contents, so
+    // there is no per-product DB row to look up).
+    if (item.productType === "installation" || item.productType === "bundle") {
       return sum + (Number(item.boxWeight) || 0) * (Number(item.quantity) || 1);
     }
 

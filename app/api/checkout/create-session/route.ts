@@ -4,6 +4,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 import { generateOrderRef } from "@/lib/utils/orderRef";
 import { resolveCartShipping } from "@/lib/shipping-server";
 import { tileBoxes, tileLinePrice } from "@/lib/pricing";
+import { PACKAGE_OFFERS, packageExVatPrice } from "@/lib/offers";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {});
 
@@ -31,10 +32,11 @@ type CheckoutCustomer = {
 };
 
 type CheckoutCartItem = {
+  product_id?: string;
   title: string;
   image?: string;
   finish?: string;
-  productType: "tile" | "wood_plank" | "installation";
+  productType: "tile" | "wood_plank" | "installation" | "bundle";
   price_per_m2?: number;
   m2?: number;
   price_per_box?: number;
@@ -100,13 +102,32 @@ export async function POST(req: Request) {
       if (
         (item.productType === "tile" && (!item.price_per_m2 || !item.m2)) ||
         (item.productType === "wood_plank" && !item.price_per_box) ||
-        (item.productType === "installation" && !item.price_each)
+        (item.productType === "installation" && !item.price_each) ||
+        (item.productType === "bundle" && !item.price_each)
       ) {
         return NextResponse.json(
           { error: `Invalid pricing for ${item.title}` },
           { status: 400 }
         );
       }
+    }
+
+    // Package-offer prices and weights are defined server-side in
+    // lib/offers.ts — never trust the client's copy (stale localStorage
+    // carts, tampering).
+    for (const item of cart) {
+      if (item.productType !== "bundle") continue;
+      const offer = PACKAGE_OFFERS.find((o) => o.id === item.product_id);
+      if (!offer) {
+        return NextResponse.json(
+          {
+            error: `${item.title} is no longer available — please remove it from your basket.`,
+          },
+          { status: 400 }
+        );
+      }
+      item.price_each = packageExVatPrice(offer);
+      item.boxWeight = offer.totalWeightKg;
     }
 
     const supabase = supabaseAdmin();
@@ -122,6 +143,7 @@ export async function POST(req: Request) {
         case "wood_plank":
           return sum + (item.price_per_box ?? 0) * (item.boxes ?? 0);
         case "installation":
+        case "bundle":
           return sum + (item.price_each ?? 0) * (item.quantity ?? 1);
         default:
           return sum;
@@ -224,7 +246,10 @@ export async function POST(req: Request) {
         let unitAmount = 0;
         let quantity = 1;
 
-        if (item.productType === "installation") {
+        if (
+          item.productType === "installation" ||
+          item.productType === "bundle"
+        ) {
           unitAmount = Math.round(Number(item.price_each) * 100);
           quantity = Math.max(1, Number(item.quantity) || 1);
         } else if (item.productType === "wood_plank") {

@@ -91,7 +91,7 @@ export async function POST(req: Request) {
          ----------------------------------------------- */
       const subtotal = cart.reduce((sum: number, item) => {
         const productType = item.productType as string;
-        if (productType === "installation") {
+        if (productType === "installation" || productType === "bundle") {
           return sum + (Number(item.price_each) || 0) * (Number(item.quantity) || 1);
         }
         if (productType === "wood_plank") {

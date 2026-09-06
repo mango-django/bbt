@@ -22,7 +22,7 @@ export type CartItem = {
   title: string;
   image: string;
 
-  productType: "tile" | "installation" | "wood_plank";
+  productType: "tile" | "installation" | "wood_plank" | "bundle";
 
   /* --------------------------
      TILE PRODUCT FIELDS
@@ -40,9 +40,10 @@ export type CartItem = {
   boxes?: number;
 
   /* --------------------------
-     INSTALLATION FIELDS
+     INSTALLATION + BUNDLE FIELDS
   -------------------------- */
   price_each?: number;
+  contents?: string[]; // bundle only — what's inside the package
 
   /* --------------------------
      SHARED
@@ -219,6 +220,7 @@ useEffect(() => {
           return sum + (item.price_per_box ?? 0) * (item.boxes ?? 0);
 
         case "installation":
+        case "bundle":
           return sum + (item.price_each ?? 0) * item.quantity;
 
         default:
@@ -242,6 +244,8 @@ useEffect(() => {
           return sum + (item.boxes ?? 0) * (item.boxWeight ?? 0);
 
         case "installation":
+        // Bundles carry the whole package weight in boxWeight.
+        case "bundle":
           return sum + (item.boxWeight ?? 0) * item.quantity;
 
         default:

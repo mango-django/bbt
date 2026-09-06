@@ -61,18 +61,21 @@ function normalizeDraftItem(raw: unknown): DraftCartItem | null {
     };
   }
 
-  if (productType === "installation") {
+  if (productType === "installation" || productType === "bundle") {
     return {
       product_id,
       title,
       image,
-      productType: "installation",
+      productType,
       finish: typeof item.finish === "string" ? item.finish : undefined,
       price_each: toNumber(item.price_each, 0),
       quantity,
       boxWeight: toNumber(item.boxWeight, 0),
       m2: toNumber(item.m2, 0),
       coverage: toNumber(item.coverage, 1),
+      contents: Array.isArray(item.contents)
+        ? item.contents.filter((c): c is string => typeof c === "string")
+        : undefined,
     };
   }
 

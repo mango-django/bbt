@@ -118,6 +118,7 @@ export default function CartPage() {
             {cart.map((item) => {
               const isTile = item.productType === "tile";
               const isWoodPlank = item.productType === "wood_plank";
+              const isBundle = item.productType === "bundle";
               const boxesRequired = isTile
                 ? tileBoxes(item.m2, item.coverage)
                 : isWoodPlank
@@ -153,11 +154,22 @@ export default function CartPage() {
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <p className="text-[10px] tracking-[0.2em] uppercase text-[#9A7A5E] mb-1">
-                          {isTile ? "Tile" : isWoodPlank ? "Wood Plank" : "Installation"}
+                          {isTile ? "Tile" : isWoodPlank ? "Wood Plank" : isBundle ? "Package Deal" : "Installation"}
                         </p>
                         <h2 className="text-sm font-light tracking-wide text-[#1A1A1A]">{item.title}</h2>
                         {item.finish && (
-                          <p className="text-[10px] text-[#6B6B6B] mt-0.5">Finish: {item.finish}</p>
+                          <p className="text-[10px] text-[#6B6B6B] mt-0.5">
+                            {isBundle ? "Colour" : "Finish"}: {item.finish}
+                          </p>
+                        )}
+                        {isBundle && item.contents && (
+                          <ul className="mt-1.5 space-y-0.5">
+                            {item.contents.map((line) => (
+                              <li key={line} className="text-[10px] text-[#6B6B6B]">
+                                {line}
+                              </li>
+                            ))}
+                          </ul>
                         )}
                       </div>
                       <button
@@ -174,7 +186,7 @@ export default function CartPage() {
                       <div>
                         <p className="text-[10px] tracking-[0.15em] uppercase text-[#9A7A5E] mb-1">Price</p>
                         <p className="text-sm font-light text-[#1A1A1A]">
-                          £{Number(unitPrice).toFixed(2)}{isTile ? " / m²" : isWoodPlank ? " / pack" : " each"}
+                          £{Number(unitPrice).toFixed(2)}{isTile ? " / m²" : isWoodPlank ? " / pack" : isBundle ? " / package" : " each"}
                         </p>
                       </div>
 

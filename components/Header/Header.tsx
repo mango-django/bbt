@@ -26,6 +26,7 @@ type ProductSearchItem = {
 
 const NAV_LINKS = [
   { href: "/tiles", label: "All Tiles" },
+  { href: "/offers", label: "Offers" },
   { href: "/visualiser", label: "Visualiser", prefetch: false },
   { href: "/wood-planks", label: "Wood Planks" },
   { href: "/installation-products", label: "Installation" },
