@@ -9,7 +9,7 @@ import sys
 import urllib.request
 from pathlib import Path
 from common import (STAGING, CATEGORY_IDS, read_jsonl, slugify, norm_key, loose_key,
-                    has_finish_word)
+                    has_finish_word, prefix_supplier_code)
 
 ROOT = Path(__file__).resolve().parents[2]
 ENV = {}
@@ -63,7 +63,9 @@ def tile_row(r):
     slug = slugify(r["title"], r["dimension_string"])
     return {
         "title": r["title"], "slug": slug, "description": r["description"],
-        "brand": r["brand"], "supplier_id": r["supplier_code"], "status": "draft",
+        "brand": r["brand"],
+        "supplier_id": prefix_supplier_code(r["brand"], r["supplier_code"]),
+        "status": "draft",
         "category_ids": [CATEGORY_IDS[c] for c in r["categories"] if c in CATEGORY_IDS],
         "material": r["material"], "finish": r["finish"], "color": r["color"],
         "application": r["application"], "suitable_room": r["suitable_room"],
@@ -113,8 +115,11 @@ def main():
         slug = slugify(r["title"], r["dimension_string"])
         nk, lk = norm_key(r["title"]), loose_key(r["title"])
         dimk = r["dimension_string"]
-        hit = (by_supplier.get(r["supplier_code"]) or by_slug.get(slug)
-               or by_normdim.get((nk, dimk)))
+        sup_hit = None
+        if r["supplier_code"]:  # bare-letter prefixes are shared, never match on them
+            sup_hit = (by_supplier.get(prefix_supplier_code(r["brand"], r["supplier_code"]))
+                       or by_supplier.get(r["supplier_code"]))
+        hit = sup_hit or by_slug.get(slug) or by_normdim.get((nk, dimk))
         if hit:
             dup.append((r, hit))
             continue

@@ -10,6 +10,24 @@ STAGING.mkdir(exist_ok=True)
 
 MARKUP = 1.4
 
+# Single-letter provider prefix stored on supplier_id so owners can see the
+# vendor at a glance in the admin (added to all live products 2026-09-09).
+SUPPLIER_PREFIX = {
+    "RAK Ceramics": "R",
+    "Verona": "V",
+    "ESL Ceramics": "E",
+    "Pyro + Echo": "P",
+    "Trimline": "T",
+}
+
+
+def prefix_supplier_code(brand, code):
+    """R-A03GRLMB… / V-P15091 / bare letter when the vendor has no item code."""
+    p = SUPPLIER_PREFIX.get(brand or "")
+    if not p:
+        return code or None
+    return f"{p}-{code}" if code else p
+
 CATEGORY_IDS = {
     "Bathroom": "f692962a-be72-403f-b6f0-d1dcebe3c56c",
     "Commercial": "ffd565e5-b9ef-45fa-b1ea-93e137470ad0",
