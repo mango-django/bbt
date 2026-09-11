@@ -27,6 +27,13 @@ export default async function AdminOrdersPage({
       ? rawQuery[0]?.trim()
       : "";
 
+  const STATUSES = ["draft", "paid", "dispatched", "delivered", "refunded"];
+  const rawStatus = params?.status;
+  const statusFilter =
+    typeof rawStatus === "string" && STATUSES.includes(rawStatus)
+      ? rawStatus
+      : "";
+
   let query = supabase
     .from("orders")
     .select(`
@@ -49,6 +56,10 @@ export default async function AdminOrdersPage({
     );
   }
 
+  if (statusFilter) {
+    query = query.eq("status", statusFilter);
+  }
+
   const { data: orders, error } = await query;
 
   if (error) {
@@ -66,6 +77,9 @@ export default async function AdminOrdersPage({
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <h1 className="text-2xl font-bold">Orders</h1>
         <form className="w-full md:w-80" action="/admin/orders" method="get">
+          {statusFilter && (
+            <input type="hidden" name="status" value={statusFilter} />
+          )}
           <input
             type="search"
             name="q"
@@ -74,6 +88,30 @@ export default async function AdminOrdersPage({
             className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm"
           />
         </form>
+      </div>
+
+      {/* STATUS FILTER */}
+      <div className="flex flex-wrap items-center gap-2">
+        {["", ...STATUSES].map((status) => {
+          const qs = new URLSearchParams();
+          if (searchQuery) qs.set("q", searchQuery);
+          if (status) qs.set("status", status);
+          const href = `/admin/orders${qs.size ? `?${qs}` : ""}`;
+          const active = status === statusFilter;
+          return (
+            <Link
+              key={status || "all"}
+              href={href}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                active
+                  ? "bg-black text-white border-black"
+                  : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
+              }`}
+            >
+              {status ? status[0].toUpperCase() + status.slice(1) : "All"}
+            </Link>
+          );
+        })}
       </div>
 
       {/* TABLE */}
@@ -132,6 +170,8 @@ export default async function AdminOrdersPage({
                         ? "bg-green-100 text-green-700"
                         : order.status === "dispatched"
                         ? "bg-blue-100 text-blue-700"
+                        : order.status === "draft"
+                        ? "bg-gray-100 text-gray-500"
                         : "bg-yellow-100 text-yellow-700"
                     }`}
                   >
