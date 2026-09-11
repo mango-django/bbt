@@ -29,6 +29,7 @@ function SpecRow({ label, value }: { label: string; value?: any }) {
 
 export default function WoodPlankClient({ plank }: { plank: any }) {
   const { addItem } = useCart();
+  const isClickLux = plank.range === "clicklux";
 
   const images = Array.isArray(plank.images)
     ? plank.images.map((url: string) => ({ url }))
@@ -56,8 +57,11 @@ export default function WoodPlankClient({ plank }: { plank: any }) {
       <div className="border-b border-[#E8E5E0] bg-white">
         <div className="max-w-[1400px] mx-auto px-6 sm:px-8 py-4">
           <nav className="flex items-center gap-2 text-[10px] tracking-[0.25em] uppercase">
-            <Link href="/wood-planks" className="text-[#9A7A5E] hover:text-[#7A5E44] transition-colors">
-              Wood Planks
+            <Link
+              href={isClickLux ? "/clicklux" : "/wood-planks"}
+              className="text-[#9A7A5E] hover:text-[#7A5E44] transition-colors"
+            >
+              {isClickLux ? "ClickLux" : "Wood Planks"}
             </Link>
             <span className="text-[#D4CFC8]">/</span>
             <span className="text-[#1A1A1A]">{plank.title}</span>
@@ -80,7 +84,7 @@ export default function WoodPlankClient({ plank }: { plank: any }) {
             {/* Category label + title */}
             <div className="mb-6">
               <p className="text-[10px] tracking-[0.25em] uppercase text-[#9A7A5E] mb-2">
-                Wood Plank Flooring
+                {isClickLux ? "ClickLux SPC Flooring" : "Wood Plank Flooring"}
               </p>
               <h1 className="text-3xl sm:text-4xl font-light tracking-wider text-[#1A1A1A] leading-tight">
                 {plank.title}

@@ -1,25 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { supabaseAdmin } from "@/lib/supabase/admin";
-import WoodPlankCard from "./WoodPlankCard";
+import WoodPlankCard from "../wood-planks/WoodPlankCard";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Wood Effect Planks",
+  title: "ClickLux SPC Flooring",
   description:
-    "Shop premium wood-effect planks — the warmth of timber with the durability of porcelain. UK-wide delivery from Bellos Bespoke Tiles.",
-  alternates: { canonical: "/wood-planks" },
+    "Shop ClickLux waterproof SPC click flooring — rigid-core planks, herringbone and tile formats with built-in underlay. UK-wide delivery from Bellos Bespoke Tiles.",
+  alternates: { canonical: "/clicklux" },
 };
 
-export default async function WoodPlanksPage() {
+export default async function ClickLuxPage() {
   const supabase = supabaseAdmin();
 
   const { data: planks, error } = await supabase
     .from("wood_planks")
     .select("*")
     .eq("is_active", true)
-    .eq("range", "wood")
+    .eq("range", "clicklux")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -28,7 +28,7 @@ export default async function WoodPlanksPage() {
       <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center">
         <div className="text-center">
           <p className="text-[11px] tracking-[0.3em] uppercase text-[#9A7A5E] mb-2">Error</p>
-          <p className="text-sm text-[#6B6B6B]">Failed to load wood planks.</p>
+          <p className="text-sm text-[#6B6B6B]">Failed to load ClickLux flooring.</p>
         </div>
       </div>
     );
@@ -45,7 +45,7 @@ export default async function WoodPlanksPage() {
               Home
             </Link>
             <span className="text-[#D4CFC8]">/</span>
-            <span className="text-[#1A1A1A]">Wood Planks</span>
+            <span className="text-[#1A1A1A]">ClickLux</span>
           </nav>
         </div>
       </div>
@@ -59,7 +59,7 @@ export default async function WoodPlanksPage() {
             Flooring
           </p>
           <h1 className="text-2xl sm:text-3xl font-light tracking-wider text-[#1A1A1A]">
-            Wood Planks
+            ClickLux SPC Flooring
           </h1>
           <p className="text-[10px] tracking-[0.25em] uppercase text-[#9A7A5E] mt-1.5">
             {planks?.length ?? 0} product{(planks?.length ?? 0) !== 1 ? "s" : ""}
@@ -75,7 +75,7 @@ export default async function WoodPlanksPage() {
         ) : (
           <div className="mt-16 text-center">
             <p className="text-[11px] tracking-[0.3em] uppercase text-[#9A7A5E] mb-2">No results</p>
-            <p className="text-sm text-[#6B6B6B]">No wood planks available at this time.</p>
+            <p className="text-sm text-[#6B6B6B]">No ClickLux flooring available at this time.</p>
           </div>
         )}
 

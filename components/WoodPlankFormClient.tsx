@@ -32,6 +32,8 @@ export default function WoodPlankFormClient({
     title: plank?.title ?? "",
     slug: plank?.slug ?? "",
     description: plank?.description ?? "",
+    range: plank?.range ?? "wood",
+    supplier_id: plank?.supplier_id ?? "",
 
     price_per_box: plank?.price_per_box ?? "",
     coverage_per_box: plank?.coverage_per_box ?? "",
@@ -187,6 +189,35 @@ export default function WoodPlankFormClient({
               })
             }
           />
+
+          <div className="flex gap-4">
+            <label className="flex-1">
+              <span className="block text-xs text-gray-500 mb-1">Range</span>
+              <select
+                className="w-full border p-3"
+                value={form.range}
+                onChange={(e) =>
+                  setForm({ ...form, range: e.target.value })
+                }
+              >
+                <option value="wood">Wood Planks</option>
+                <option value="clicklux">ClickLux SPC</option>
+              </select>
+            </label>
+            <label className="flex-1">
+              <span className="block text-xs text-gray-500 mb-1">
+                Supplier ID
+              </span>
+              <input
+                placeholder="e.g. V-L10096"
+                className="w-full border p-3"
+                value={form.supplier_id}
+                onChange={(e) =>
+                  setForm({ ...form, supplier_id: e.target.value })
+                }
+              />
+            </label>
+          </div>
 
           {[
             { key: "price_per_box", label: "Price per box", suffix: "£0.00" },

@@ -24,11 +24,25 @@ type ProductSearchItem = {
   dimension_string?: string | null;
 };
 
-const NAV_LINKS = [
+type NavLink = {
+  href: string;
+  label: string;
+  prefetch?: boolean;
+  children?: { href: string; label: string }[];
+};
+
+const NAV_LINKS: NavLink[] = [
   { href: "/tiles", label: "All Tiles" },
   { href: "/offers", label: "Offers" },
   { href: "/visualiser", label: "Visualiser", prefetch: false },
-  { href: "/wood-planks", label: "Wood Planks" },
+  {
+    href: "/wood-planks",
+    label: "Flooring",
+    children: [
+      { href: "/wood-planks", label: "Wood Planks" },
+      { href: "/clicklux", label: "ClickLux" },
+    ],
+  },
   { href: "/installation-products", label: "Installation" },
   { href: "/faqs", label: "FAQs" },
   { href: "/about", label: "About" },
@@ -174,16 +188,40 @@ export default function Header() {
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-7 flex-1 justify-center">
-            {NAV_LINKS.map(({ href, label, prefetch }) => (
-              <Link
-                key={href}
-                href={href}
-                prefetch={prefetch}
-                className="text-[10px] tracking-[0.25em] uppercase text-white/60 hover:text-white transition-colors duration-200 whitespace-nowrap"
-              >
-                {label}
-              </Link>
-            ))}
+            {NAV_LINKS.map(({ href, label, prefetch, children }) =>
+              children ? (
+                <div key={href} className="relative group">
+                  <Link
+                    href={href}
+                    className="text-[10px] tracking-[0.25em] uppercase text-white/60 group-hover:text-white transition-colors duration-200 whitespace-nowrap"
+                  >
+                    {label}
+                  </Link>
+                  <div className="absolute left-1/2 -translate-x-1/2 top-full pt-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                    <div className="bg-[#1A1A1A] border border-white/10 shadow-2xl min-w-[170px]">
+                      {children.map((child) => (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          className="block px-5 py-3 text-[10px] tracking-[0.25em] uppercase text-white/60 hover:text-white hover:bg-white/5 border-b border-white/10 last:border-b-0 transition-colors whitespace-nowrap"
+                        >
+                          {child.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <Link
+                  key={href}
+                  href={href}
+                  prefetch={prefetch}
+                  className="text-[10px] tracking-[0.25em] uppercase text-white/60 hover:text-white transition-colors duration-200 whitespace-nowrap"
+                >
+                  {label}
+                </Link>
+              )
+            )}
             {isAdmin && (
               <Link
                 href="/admin"
@@ -394,16 +432,36 @@ export default function Header() {
 
         {/* Nav links */}
         <nav className="flex flex-col px-6 py-6 gap-0">
-          {NAV_LINKS.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              onClick={() => setMobileMenuOpen(false)}
-              className="py-4 border-b border-white/10 text-[10px] tracking-[0.3em] uppercase text-white/60 hover:text-white transition-colors"
-            >
-              {label}
-            </Link>
-          ))}
+          {NAV_LINKS.map(({ href, label, children }) =>
+            children ? (
+              <div key={href} className="border-b border-white/10">
+                <p className="pt-4 pb-1 text-[10px] tracking-[0.3em] uppercase text-white/35">
+                  {label}
+                </p>
+                <div className="flex flex-col pb-4 pl-4">
+                  {children.map((child) => (
+                    <Link
+                      key={child.href}
+                      href={child.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="py-2.5 text-[10px] tracking-[0.3em] uppercase text-white/60 hover:text-white transition-colors"
+                    >
+                      {child.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <Link
+                key={href}
+                href={href}
+                onClick={() => setMobileMenuOpen(false)}
+                className="py-4 border-b border-white/10 text-[10px] tracking-[0.3em] uppercase text-white/60 hover:text-white transition-colors"
+              >
+                {label}
+              </Link>
+            )
+          )}
           {isAdmin && (
             <Link
               href="/admin"

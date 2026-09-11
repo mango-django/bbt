@@ -37,10 +37,13 @@ export async function generateMetadata({
   const plank = await getPlank(slug);
   if (!plank) return { title: "Product Not Found" };
 
-  const title = `${plank.title} | Wood Effect Planks`;
+  const isClickLux = plank.range === "clicklux";
+  const title = `${plank.title} | ${isClickLux ? "ClickLux SPC Flooring" : "Wood Effect Planks"}`;
   const description = plank.description
     ? truncate(stripHtml(String(plank.description)), 155)
-    : `Buy ${plank.title} wood-effect planks from ${SITE_NAME}. Delivered across the UK.`;
+    : isClickLux
+      ? `Buy ${plank.title} waterproof SPC click flooring from ${SITE_NAME}. Delivered across the UK.`
+      : `Buy ${plank.title} wood-effect planks from ${SITE_NAME}. Delivered across the UK.`;
   const image = Array.isArray(plank.images) ? plank.images[0] : undefined;
   const canonical = `/wood-planks/${encodeURIComponent(plank.slug || slug)}`;
 
@@ -83,7 +86,7 @@ export default async function WoodPlankPage({
       stripHtml(String(plank.description ?? "")) ||
       `${plank.title} from ${SITE_NAME}.`,
     sku: plank.id,
-    material: "Wood Effect",
+    material: plank.range === "clicklux" ? "SPC" : "Wood Effect",
     ...(plank.brand ? { brand: { "@type": "Brand", name: plank.brand } } : {}),
     ...(images.length ? { image: images } : {}),
     ...(price > 0
@@ -106,7 +109,9 @@ export default async function WoodPlankPage({
 
   const breadcrumbs = breadcrumbJsonLd([
     { name: "Home", path: "/" },
-    { name: "Wood Planks", path: "/wood-planks" },
+    plank.range === "clicklux"
+      ? { name: "ClickLux", path: "/clicklux" }
+      : { name: "Wood Planks", path: "/wood-planks" },
     { name: plank.title },
   ]);
 
