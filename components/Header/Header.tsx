@@ -29,6 +29,7 @@ type NavLink = {
   label: string;
   prefetch?: boolean;
   children?: { href: string; label: string }[];
+  mobileOnly?: boolean;
 };
 
 const NAV_LINKS: NavLink[] = [
@@ -44,8 +45,8 @@ const NAV_LINKS: NavLink[] = [
     ],
   },
   { href: "/installation-products", label: "Installation" },
-  { href: "/faqs", label: "FAQs" },
-  { href: "/about", label: "About" },
+  { href: "/faqs", label: "FAQs", mobileOnly: true },
+  { href: "/about", label: "About", mobileOnly: true },
   { href: "/contact-us", label: "Contact" },
 ];
 
@@ -188,7 +189,7 @@ export default function Header() {
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-7 flex-1 justify-center">
-            {NAV_LINKS.map(({ href, label, prefetch, children }) =>
+            {NAV_LINKS.filter((link) => !link.mobileOnly).map(({ href, label, prefetch, children }) =>
               children ? (
                 <div key={href} className="relative group">
                   <Link
