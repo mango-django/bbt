@@ -322,7 +322,14 @@ export default function ProductPageClient({ product, sortedImages, relatedProduc
                 />
                 <SpecRow label="Indoor / Outdoor" value={product.indoor_outdoor} />
                 <SpecRow label="Weight per Box" value={weightPerBox ? `${weightPerBox} kg` : null} />
-                <SpecRow label="Boxes in Stock" value={product.boxes_in_stock} />
+                <SpecRow
+                  label="Boxes in Stock"
+                  value={
+                    Number(product.boxes_in_stock) > 0
+                      ? product.boxes_in_stock
+                      : "Call To Check"
+                  }
+                />
                 <SpecRow label="Lead Time" value={product.lead_time_days ? `${product.lead_time_days} days` : null} />
               </div>
             </div>
